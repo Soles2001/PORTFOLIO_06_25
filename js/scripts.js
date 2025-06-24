@@ -1,43 +1,28 @@
 window.addEventListener('DOMContentLoaded', () => {
+    const tl = gsap.timeline();
 
-  const tl = gsap.timeline();
-
-  // Hace subir la "carta" desde abajo (home)
-  tl.to(".home", {
-    top: 0,
-    duration: 1.5,
-    ease: "power2.inOut",
-    delay: 2
-  })
-
-  .to(".home", {
-    onStart: () => {
-      document.body.style.overflow = "auto";
-      document.body.style.overflowX = "hidden";
-    }
-  });
+    tl.to(".home", {
+        top: 0,
+        duration: 1.5,
+        ease: "power2.inOut",
+        delay: 2
+    }).to(".home", {
+        onStart: () => {
+            document.body.style.overflow = "auto";
+            document.body.style.overflowX = "hidden";
+        }
+    });
 });
 
 
-
-
-
-
-// NAV
+// NAVBAR FIX
 document.addEventListener("DOMContentLoaded", function () {
     const toggleButton = document.querySelector(".burger");
+    const overlay = document.querySelector(".overlay");
 
-    if (!toggleButton) {
-        console.error("Elemento .burger no encontrado");
-        return;
-    }
+    if (!toggleButton || !overlay) return;
 
-    let activeItemIndicator = CSSRulePlugin.getRule(".menu-item p#active::after");
     let isOpen = false;
-
-    gsap.set(".menu-item p", {
-        y: 225
-    });
 
     const timeline = gsap.timeline({
         paused: true
@@ -49,27 +34,68 @@ document.addEventListener("DOMContentLoaded", function () {
         ease: "power4.inOut"
     });
 
-    timeline.to(".menu-item p", {
-        duration: 0.5,
+    timeline.fromTo(".menu-item p", {
+        y: 225,
+    }, {
         y: 0,
+        duration: 0.5,
         stagger: 0.2,
         ease: "power4.out"
-    }, "-=1");
-
-    timeline.to(activeItemIndicator, {
-        width: "100%",
-        duration: 1,
-        ease: "power4.out",
-        delay: 0.5
-    }, "<");
+    }, "-=0.3");
 
     toggleButton.addEventListener("click", function () {
-        if (isOpen) {
-            timeline.reverse();
-        } else {
-            timeline.play();
-        }
+        toggleButton.classList.toggle("active");
+        isOpen ? timeline.reverse() : timeline.play();
         isOpen = !isOpen;
     });
-});
 
+    // Animar h1 después de que los marquees terminen (4s)
+    // Mostrar h1 + side images después de que los marquees terminen (4s)
+    gsap.set(".reveal-title h1", {
+        y: 100
+    });
+    gsap.set(".reveal-title h2", {
+        y: 120
+    });
+    gsap.set(".reveal-title p", {
+        y: 140
+    });
+    gsap.set(".left-img", {
+        x: -440
+    });
+    gsap.set(".right-img", {
+        x: 440
+    });
+
+    gsap.to(".marquee-track.left", {
+        left: "100%",
+        duration: 3,
+        delay: 3,
+        ease: "power2.easeIn"
+    });
+
+    gsap.to(".marquee-track.right", {
+        right: "100%",
+        duration: 3,
+        delay: 3,
+        ease: "power2.easeIn"
+    });
+
+    gsap.timeline({
+            delay: 5.5
+        })
+        .to(".reveal-title h1,.reveal-title h2,.reveal-title p ", {
+            duration: 1,
+            opacity: 1,
+            y: 0,
+            ease: "power3.easeOut"
+        })
+
+        .to(".left-img,.right-img", {
+            duration: 1,
+            opacity: 1,
+            x: 0,
+            ease: "power3.easeIn",
+        }, );
+
+});

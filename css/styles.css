@@ -19,6 +19,11 @@ video {
   object-fit: cover;
 }
 
+figure {
+  height: 100%;
+  width: 100%;
+}
+
 img {
   height: 100%;
   width: 100%;
@@ -29,7 +34,7 @@ h1 {
   font-family: "Instrument Serif", serif;
   font-weight: 400;
   font-style: normal;
-  font-size: 50px;
+  font-size: 60px;
   letter-spacing: -0.2rem;
   line-height: 85%;
 }
@@ -38,14 +43,15 @@ h2 {
   font-family: "Montserrat", sans-serif;
   font-weight: 400;
   font-style: normal;
-  font-size: 20px;
+  font-size: 30px;
   letter-spacing: 0.6rem;
 }
+
 P {
   font-family: "Montserrat", sans-serif;
   font-weight: 400;
   font-style: normal;
-  font-size: 15px;
+  font-size: 20px;
 }
 
 .intro {
@@ -66,7 +72,8 @@ P {
 
 .home {
   position: absolute;
-  top: 100vh; /* posicionada justo debajo de la pantalla */
+  top: 100vh;
+  /* posicionada justo debajo de la pantalla */
   left: 0;
   width: 100vw;
   height: 300vh;
@@ -75,7 +82,7 @@ P {
   z-index: 2;
 }
 
-header{
+header {
   height: 100vh;
   width: 100vw;
   justify-content: flex-start;
@@ -84,7 +91,7 @@ header{
   flex-direction: column;
 }
 
-.txt{
+.txt {
   padding-top: 40vh;
   padding-left: 10vw;
   padding-right: 5vw;
@@ -98,193 +105,339 @@ header{
 
 
 nav {
-    position: fixed;
-    width: 100%;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    z-index: 1000;
-    padding-left: 3%;
-    padding-right: 3%;
-    padding-top: 1%;
-    z-index: 9999999;
+  position: fixed;
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  z-index: 1000;
+  padding-left: 3%;
+  padding-right: 3%;
+  padding-top: 1%;
+  z-index: 9999999;
 }
 
 nav>div {
-    flex: 1;
+  flex: 1;
 }
 
 .logo {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    z-index: 99999;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 99999;
 }
 
 .logo>a>img {
-    width: 5em;
-    justify-content: center;
+  width: 5em;
+  justify-content: center;
 }
 
 .toggle-btn {
-    display: flex;
-    justify-content: flex-end;
-    z-index: 9999999;
+  display: flex;
+  justify-content: flex-end;
+  z-index: 9999999;
 }
 
 .burger {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    transition: all 250ms ease-out;
-    -webkit-transition: all 250ms ease-out;
-    -moz-transition: all 250ms ease-out;
-    -ms-transition: all 250ms ease-out;
-    -o-transition: all 250ms ease-out;
-    cursor: pointer;
-    width: 28px;
-    height: 20px;
-    background: transparent;
-    border: 0px;
-    z-index: 9999999;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  transition: all 250ms ease-out;
+  -webkit-transition: all 250ms ease-out;
+  -moz-transition: all 250ms ease-out;
+  -ms-transition: all 250ms ease-out;
+  -o-transition: all 250ms ease-out;
+  cursor: pointer;
+  width: 28px;
+  height: 20px;
+  background: transparent;
+  border: 0px;
+  z-index: 9999999;
 }
 
 .burger:before,
 .burger:after {
-    content: "";
-    width: 40px;
-    height: 2px;
-    position: absolute;
-    background: black;
-    will-change: transform;
+  content: "";
+  width: 40px;
+  height: 2px;
+  position: absolute;
+  background: black;
+  will-change: transform;
 }
 
 .burger:before {
-    transform: translateY(-3px);
-    -webkit-transform: translateY(-3px);
-    -moz-transform: translateY(-3px);
-    -ms-transform: translateY(-3px);
-    -o-transform: translateY(-3px);
+  transform: translateY(-3px);
+  -webkit-transform: translateY(-3px);
+  -moz-transform: translateY(-3px);
+  -ms-transform: translateY(-3px);
+  -o-transform: translateY(-3px);
 }
 
 .burger:after {
-    transform: translateY(3px);
-    -webkit-transform: translateY(3px);
-    -moz-transform: translateY(3px);
-    -ms-transform: translateY(3px);
-    -o-transform: translateY(3px);
-    transition: 1s;
-    -webkit-transition: 1s;
-    -moz-transition: 1s;
-    -ms-transition: 1s;
-    -o-transition: 1s;
+  transform: translateY(3px);
+  -webkit-transform: translateY(3px);
+  -moz-transform: translateY(3px);
+  -ms-transform: translateY(3px);
+  -o-transform: translateY(3px);
+  transition: 1s;
+  -webkit-transition: 1s;
+  -moz-transition: 1s;
+  -ms-transition: 1s;
+  -o-transition: 1s;
 }
 
 .active.burger:before {
-    transform: translateY(0) rotate(45deg);
-    -webkit-transform: translateY(0) rotate(45deg);
-    -moz-transform: translateY(0) rotate(45deg);
-    -ms-transform: translateY(0) rotate(45deg);
-    -o-transform: translateY(0) rotate(45deg);
-    transition: 1s;
-    -webkit-transition: 1s;
-    -moz-transition: 1s;
-    -ms-transition: 1s;
-    -o-transition: 1s;
+  transform: translateY(0) rotate(45deg);
+  -webkit-transform: translateY(0) rotate(45deg);
+  -moz-transform: translateY(0) rotate(45deg);
+  -ms-transform: translateY(0) rotate(45deg);
+  -o-transform: translateY(0) rotate(45deg);
+  transition: 1s;
+  -webkit-transition: 1s;
+  -moz-transition: 1s;
+  -ms-transition: 1s;
+  -o-transition: 1s;
 }
 
 .active.burger:after {
-    transform: translateY(0) rotate(-45deg);
-    -webkit-transform: translateY(0) rotate(-45deg);
-    -moz-transform: translateY(0) rotate(-45deg);
-    -ms-transform: translateY(0) rotate(-45deg);
-    -o-transform: translateY(0) rotate(-45deg);
-    transition: 1s;
-    -webkit-transition: 1s;
-    -moz-transition: 1s;
-    -ms-transition: 1s;
-    -o-transition: 1s;
+  transform: translateY(0) rotate(-45deg);
+  -webkit-transform: translateY(0) rotate(-45deg);
+  -moz-transform: translateY(0) rotate(-45deg);
+  -ms-transform: translateY(0) rotate(-45deg);
+  -o-transform: translateY(0) rotate(-45deg);
+  transition: 1s;
+  -webkit-transition: 1s;
+  -moz-transition: 1s;
+  -ms-transition: 1s;
+  -o-transition: 1s;
 }
 
 .overlay {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100vw;
-    height: 100vh;
-    display: flex;
-    background-color: #046FD4;
-    will-change: transform;
-    /* Agrega esto para ocultar el overlay inicialmente */
-    clip-path: polygon(0% 0%, 0% 0%, 0% 100%, 0% 100%);
-    z-index: 999999;
-    /* Para que aparezca sobre el contenido */
-    transition: clip-path 0.5s ease-in-out;
-    /* Por si el navegador no soporta GSAP */
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  display: flex;
+  background-color: #046FD4;
+  will-change: transform;
+  /* Agrega esto para ocultar el overlay inicialmente */
+  clip-path: polygon(0% 0%, 0% 0%, 0% 100%, 0% 100%);
+  z-index: 999999;
+  /* Para que aparezca sobre el contenido */
+  transition: clip-path 0.5s ease-in-out;
+  /* Por si el navegador no soporta GSAP */
 }
 
 .overlay a {
-    color: #00E776;
+  color: #00E776;
 }
 
 .overlay-menu {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100vw;
-    height: 100vh;
-    display: flex;
-    gap: 1em;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  display: flex;
+  gap: 1em;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
 }
 
 .menu-item {
-    display: flex;
-    cursor: pointer;
+  display: flex;
+  cursor: pointer;
 }
 
 .menu-item p {
-    position: relative;
-    text-align: center;
-    font-size: 12vw;
-    line-height: 80%;
-    will-change: transform;
-    transition: letter-spacing 0.3s;
+  position: relative;
+  text-align: center;
+  font-size: 12vw;
+  line-height: 80%;
+  will-change: transform;
+  transition: letter-spacing 0.3s;
 }
 
 .menu-item p:hover {
-    letter-spacing: 0.075em;
+  letter-spacing: 0.075em;
 }
 
 .menu-item p#active::after {
-    content: "";
-    position: absolute;
-    top: 45%;
-    left: 0;
-    transform: translateY(-50%);
-    background-color: black;
-    width: 0%;
-    height: 10px;
-    transition: width 0.5s ease;
-    /* Añadí transición */
+  content: "";
+  position: absolute;
+  top: 45%;
+  left: 0;
+  transform: translateY(-50%);
+  background-color: black;
+  width: 0%;
+  height: 10px;
+  transition: width 0.5s ease;
+  /* Añadí transición */
 }
 
-
-#gallery{
-  padding-top: 5%;
+#gallery {
   height: 100vh;
   width: 100vw;
   display: flex;
   align-items: center;
   justify-content: center;
-  flex-direction: row;
   flex-wrap: wrap;
-  gap:6%;
+  gap: 2%;
+  padding: 2rem;
 }
 
-#gallery>figure{
-  width: 30em;
-  height: auto;
+.gallery-item {
+  position: relative;
+  width: 47vw;
+  height: 80vh;
+  overflow: hidden;
+  background-color: var(--bg-color, #000);
+  transition: all 0.5s ease-in-out;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
+
+.gallery-item img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: all 0.4s ease;
+  z-index: 1;
+}
+
+.gallery-item figcaption {
+  position: absolute;
+  bottom: -100%;
+  left: 0;
+  width: 100%;
+  padding: 1rem;
+  color: white;
+  font-size: 5rem;
+  text-align: center;
+  z-index: 2;
+  transition: bottom 0.4s ease;
+  pointer-events: none;
+}
+
+.gallery-item:hover .gallery-img-small {
+  transform: scale(0.5);
+  object-fit: contain;
+  background-color: transparent;
+}
+
+.gallery-item:hover figcaption {
+  bottom: 5%;
+}
+
+.marquee-wrapper {
+  height: 100vh;
+  width: 100%;
+  overflow: hidden;
+  position: relative;
+}
+
+.marquee-track {
+  position: absolute;
+  display: flex;
+  gap: 2vw;
+  will-change: transform;
+}
+
+.marquee-track img {
+  height: 40vh;
+  width: auto;
+  object-fit: cover;
+}
+
+.marquee-track.left {
+  top: 3%;
+  left: -120%;
+  /* animation: move-right 4s ease-in forwards; */
+}
+
+.marquee-track.right {
+  bottom: 3%;
+  right: -120%;
+  /* animation: move-left 4s ease-in forwards; */
+}
+
+/* @keyframes move-right {
+  to {
+    left: 100%;
+  }
+}
+
+@keyframes move-left {
+  to {
+    right: 100%;
+  }
+} */
+
+.reveal-title {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  top: 0;
+  left: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+  flex-direction: column;
+}
+
+.reveal-title h1 {
+  transform: translateY(100%);
+  opacity: 0;
+}
+
+.reveal-title h2 {
+  transform: translateY(120%);
+  opacity: 0;
+}
+
+.reveal-title p {
+  transform: translateY(140%);
+  opacity: 0;
+}
+
+.side-img {
+  position: absolute;
+  height: 100vh;
+  width: auto;
+  object-fit: cover;
+  transform: translateX(100%);
+}
+
+.left-img {
+  transform: translateX(-440%);
+  left: -15vw;
+}
+
+.right-img {
+  transform: translateX(440%);
+  transform: scaleX(-1);
+  right: -15vw;
+}
+
+
+.award-badge {
+  position: absolute;
+  top: 40px;
+  left: 10px;
+  width: 250px;
+  height: 250px;
+  z-index: 5;
+}
+
+.award-badge img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+
