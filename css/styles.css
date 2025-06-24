@@ -7,6 +7,7 @@
   cursor: default;
   font-family: "Instrument Serif", serif;
   scroll-behavior: smooth;
+  cursor: none;
 }
 
 body {
@@ -45,6 +46,11 @@ h2 {
   font-style: normal;
   font-size: 30px;
   letter-spacing: 0.6rem;
+}
+
+#gallery a{
+  height: 100%;
+  width: 100%;
 }
 
 P {
@@ -315,6 +321,7 @@ nav>div {
   width: 100%;
   padding: 1rem;
   color: white;
+  mix-blend-mode: difference;
   font-size: 5rem;
   text-align: center;
   z-index: 2;
@@ -323,8 +330,8 @@ nav>div {
 }
 
 .gallery-item:hover .gallery-img-small {
-  transform: scale(0.5);
-  object-fit: contain;
+  /* transform: scale(0.5); */
+  /* object-fit: contain; */
   background-color: transparent;
 }
 
@@ -387,6 +394,7 @@ nav>div {
   justify-content: center;
   pointer-events: none;
   flex-direction: column;
+  z-index: 1000000000;
 }
 
 .reveal-title h1 {
@@ -451,3 +459,19 @@ nav>div {
     width: 90vw;
   }
 }
+
+
+.cursor {
+    position: fixed;
+   top: 0;
+   left: 0;
+    width: 100px;
+    height: 100px;
+    background: white;
+    mix-blend-mode: difference;
+    border-radius: 100%;
+    border: 1px grey;
+    backface-visibility: hidden;
+    z-index: 100000;
+   pointer-events: none;
+  }

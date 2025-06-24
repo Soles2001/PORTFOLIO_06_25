@@ -60,12 +60,6 @@ document.addEventListener("DOMContentLoaded", function () {
     gsap.set(".reveal-title p", {
         y: 140
     });
-    gsap.set(".left-img", {
-        x: -440
-    });
-    gsap.set(".right-img", {
-        x: 440
-    });
 
     gsap.to(".marquee-track.left", {
         left: "100%",
@@ -91,11 +85,34 @@ document.addEventListener("DOMContentLoaded", function () {
             ease: "power3.easeOut"
         })
 
-        .to(".left-img,.right-img", {
-            duration: 1,
-            opacity: 1,
-            x: 0,
-            ease: "power3.easeIn",
-        }, );
+    // .to("#escorpionModel", {
+    //     duration: 1.5,
+    //     left: '5vw',
+    //     ease: "power3.out"
+    // }, "-=0.5"); // Opcional: solapar un poco con la animación anterir
 
+
+});
+
+
+let items = gsap.utils.toArray("a"),
+    cursor = document.querySelector("#Cursor"),
+    xTo = gsap.quickTo(cursor, "x", {duration: 0.3, ease: "power3"}),
+    yTo = gsap.quickTo(cursor, "y", {duration: 0.3, ease: "power3"});
+
+// center cursor on pointer, and scale it to 20px
+gsap.set(cursor, {scale: 0.2, xPercent: -50, yPercent: -50});
+
+window.addEventListener("mousemove", (e) => {
+  xTo(e.clientX);
+  yTo(e.clientY);
+});
+
+items.forEach((item) => {
+  item.addEventListener("mouseenter", () => {
+    gsap.to(cursor, { scale: 1.5, duration: 0.2, overwrite: "auto" })
+  });
+  item.addEventListener("mouseleave", () => {
+    gsap.to(cursor, { scale: 0.2, duration: 0.2, overwrite: "auto" })
+  });
 });

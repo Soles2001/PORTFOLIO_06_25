@@ -18,12 +18,13 @@
         href="https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap"
         rel="stylesheet">
 
+    <script type="module" src="https://unpkg.com/@google/model-viewer/dist/model-viewer.min.js"></script>
     <!-- CSS -->
     <link rel="stylesheet" href="css/styles.css" type="text/css">
 </head>
-
+    
 <body>
-
+    <div id='Cursor' class='cursor'></div>
     <!-- INTRO -->
     <section class="intro" id="intro">
         <img src="media/img/WELCOME.svg" alt="Welcome" class="welcome-logo">
@@ -75,51 +76,68 @@
                 <h1>HI I'M ALONSO SANTAMARÍA</h1>
                 <h2>ART DIRECTOR & GRAPHIC DESIGNER</h2>
                 <p>Based in Madrid</p>
-                <!-- <img class="side-img left-img" src="media/img/Sin título-7.png" alt="Side Left">
-                <img class="side-img right-img" src="media/img/Sin título-7.png" alt="Side Right"> -->
             </div>
+            <!-- Modelo 3D -->
+            <!-- <model-viewer id="escorpionModel" src="3d/escorpiones.glb" alt="Modelo Escorpión" camera-controls
+                disable-zoom
+
+              exposure="1" 
+              camera-controls
+                style="position: absolute; left: -100vw; top: 50%; transform: translateY(-50%); width: 50vw; height: 50vh;"
+                autoplay exposure="1">
+            </model-viewer> -->
+
         </section>
 
         <!-- Galería -->
         <section id="gallery">
+
             <figure class="gallery-item" style="--bg-color: #060606">
                 <figcaption>Thompson Hotel</figcaption>
-                <img src="media/img/thompson/thompson_camiseta.webp" alt="" class="gallery-img-small">
+                <a href=""><img src="media/img/thompson/thompson_camiseta.webp" alt="" class="gallery-img-small"></a>
+                
             </figure>
 
             <figure class="gallery-item" style="--bg-color: #0949B5">
                 <figcaption>Minority (ADG Laus InBook 2025)</figcaption>
-                <img src="media/img/minority/minority_app_icon.webp" alt="" class="gallery-img-small">
+                <a href=""><img src="media/img/minority/minority_app_icon.webp" alt="" class="gallery-img-small">
                 <div class="award-badge">
                     <img src="media/img/minority/laus_logo.png" alt="Premio Laus">
-                </div>
+                </div></a>
+                
             </figure>
 
             <figure class="gallery-item" style="--bg-color: #707070">
                 <figcaption>Keller</figcaption>
-                <img src="media/img/keller/keller_camiseta.webp" alt="" class="gallery-img-small">
+                <a href=""><img src="media/img/keller/keller_camiseta.webp" alt="" class="gallery-img-small"></a>
+                
             </figure>
 
             <figure class="gallery-item" style="--bg-color: #FFAE2B">
                 <figcaption>Valencia Wines</figcaption>
-                <img src="media/img/valencia_wines/valenci_wines_tres.webp" alt="" class="gallery-img-small">
+                <a href=""><img src="media/img/valencia_wines/valenci_wines_tres.webp" alt="" class="gallery-img-small"></a>
+                
             </figure>
 
             <figure class="gallery-item" style="--bg-color: #E6252C">
                 <figcaption>COFI!</figcaption>
-                <img src="media/img/cofi/cofi_individual.webp" alt="" class="gallery-img-small">
+                <a href=""><img src="media/img/cofi/cofi_individual.webp" alt="" class="gallery-img-small"></a>
+                
             </figure>
 
             <figure class="gallery-item" style="--bg-color: #1CB5CF">
                 <figcaption>Chupa Chups</figcaption>
-                <img src="media/img/chupachups/chupachups_lettering.webp" alt="" class="gallery-img-small">
+                <a href=""><img src="media/img/chupachups/chupachups_lettering.webp" alt="" class="gallery-img-small"></a>
+                
             </figure>
         </section>
     </section>
+    
 
     <!-- GSAP + ScrollTrigger -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js"></script>
+
 
     <!-- JS -->
     <script src="js/scripts.js"></script>
