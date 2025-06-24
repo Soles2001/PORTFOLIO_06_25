@@ -69,20 +69,20 @@ document.addEventListener("DOMContentLoaded", function () {
 
     gsap.to(".marquee-track.left", {
         left: "100%",
-        duration: 3,
+        duration: 2.5,
         delay: 3,
         ease: "power2.easeIn"
     });
 
     gsap.to(".marquee-track.right", {
         right: "100%",
-        duration: 3,
+        duration: 2.5,
         delay: 3,
         ease: "power2.easeIn"
     });
 
     gsap.timeline({
-            delay: 5.5
+            delay: 4.5
         })
         .to(".reveal-title h1,.reveal-title h2,.reveal-title p ", {
             duration: 1,
