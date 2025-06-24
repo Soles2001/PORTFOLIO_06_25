@@ -48,7 +48,7 @@ h2 {
   letter-spacing: 0.6rem;
 }
 
-#gallery a{
+#gallery a {
   height: 100%;
   width: 100%;
 }
@@ -449,29 +449,43 @@ nav>div {
 
 
 @media only screen and (max-width: 1567px) {
-  .gallery-item{
+  .gallery-item {
     width: 43vw;
   }
 }
 
 @media only screen and (max-width: 1300px) {
-  .gallery-item{
+  .gallery-item {
     width: 90vw;
   }
 }
 
 
 .cursor {
-    position: fixed;
-   top: 0;
-   left: 0;
-    width: 100px;
-    height: 100px;
-    background: white;
-    mix-blend-mode: difference;
-    border-radius: 100%;
-    border: 1px grey;
-    backface-visibility: hidden;
-    z-index: 100000;
-   pointer-events: none;
-  }
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100px;
+  height: 100px;
+  background: white;
+  mix-blend-mode: difference;
+  border-radius: 100%;
+  border: 1px grey;
+  backface-visibility: hidden;
+  z-index: 100000;
+  pointer-events: none;
+}
+
+
+#about {
+  padding-top: 6%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-direction: column;
+}
+
+.about-txt{
+  display: flex;
+  flex-direction: row;
+}
