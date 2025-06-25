@@ -61,19 +61,41 @@ document.addEventListener("DOMContentLoaded", function () {
         y: 140
     });
 
-    gsap.to(".marquee-track.left", {
-        left: "100%",
-        duration: 2.5,
-        delay: 3,
-        ease: "power2.easeIn"
+    gsap.set(".marquee-track.left", {
+        left: "-140%"
     });
 
-    gsap.to(".marquee-track.right", {
-        right: "100%",
-        duration: 2.5,
-        delay: 3,
-        ease: "power2.easeIn"
+    const leftAnim = gsap.timeline({
+        delay: 3
     });
+
+
+   // REGISTRAMOS CURVA PERSONALIZADA
+CustomEase.create("slowInMiddle", "M0,0 C0.2,0 0.3,0.5 0.5,0.5 0.7,0.5 0.8,1 1,1");
+
+// MARQUEE IZQUIERDA
+gsap.set(".marquee-track.left", { left: "-140%" });
+
+gsap.to(".marquee-track.left", {
+  left: "100%",
+  duration: 8,
+  delay: 3,
+  ease: "slowInMiddle"
+});
+
+// MARQUEE DERECHA
+gsap.set(".marquee-track.right", { right: "-140%" });
+
+gsap.to(".marquee-track.right", {
+  right: "100%",
+  duration: 8,
+  delay: 3,
+  ease: "slowInMiddle"
+});
+
+
+
+
 
     gsap.timeline({
             delay: 4.5
@@ -97,22 +119,40 @@ document.addEventListener("DOMContentLoaded", function () {
 
 let items = gsap.utils.toArray("a"),
     cursor = document.querySelector("#Cursor"),
-    xTo = gsap.quickTo(cursor, "x", {duration: 0.3, ease: "power3"}),
-    yTo = gsap.quickTo(cursor, "y", {duration: 0.3, ease: "power3"});
+    xTo = gsap.quickTo(cursor, "x", {
+        duration: 0.3,
+        ease: "power3"
+    }),
+    yTo = gsap.quickTo(cursor, "y", {
+        duration: 0.3,
+        ease: "power3"
+    });
 
 // center cursor on pointer, and scale it to 20px
-gsap.set(cursor, {scale: 0.2, xPercent: -50, yPercent: -50});
+gsap.set(cursor, {
+    scale: 0.2,
+    xPercent: -50,
+    yPercent: -50
+});
 
 window.addEventListener("mousemove", (e) => {
-  xTo(e.clientX);
-  yTo(e.clientY);
+    xTo(e.clientX);
+    yTo(e.clientY);
 });
 
 items.forEach((item) => {
-  item.addEventListener("mouseenter", () => {
-    gsap.to(cursor, { scale: 1.5, duration: 0.2, overwrite: "auto" })
-  });
-  item.addEventListener("mouseleave", () => {
-    gsap.to(cursor, { scale: 0.2, duration: 0.2, overwrite: "auto" })
-  });
+    item.addEventListener("mouseenter", () => {
+        gsap.to(cursor, {
+            scale: 1.5,
+            duration: 0.2,
+            overwrite: "auto"
+        })
+    });
+    item.addEventListener("mouseleave", () => {
+        gsap.to(cursor, {
+            scale: 0.2,
+            duration: 0.2,
+            overwrite: "auto"
+        })
+    });
 });
