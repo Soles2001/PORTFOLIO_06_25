@@ -14,7 +14,18 @@ window.addEventListener('DOMContentLoaded', () => {
         }
     }).add(() => {
         document.body.classList.remove("intro-active");
-        window.dispatchEvent(new Event("logo:refresh"));
+
+        const alonsoLogoEl = document.querySelector(".alonso");
+        if (alonsoLogoEl) {
+            alonsoLogoEl.classList.remove("is-hidden");
+        }
+
+        document.body.classList.add("logo-visible");
+        document.body.classList.remove("logo-hidden");
+
+        window.requestAnimationFrame(() => {
+            window.dispatchEvent(new Event("logo:refresh"));
+        });
     });
 });
 
