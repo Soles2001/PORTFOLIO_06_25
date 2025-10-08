@@ -45,7 +45,7 @@ h1 {
 }
 
 h2 {
-  font-family: "Inter", sans-serif;
+  font-family: "Instrument Sans", sans-serif;
   font-weight: 400;
   font-style: normal;
   font-size: 30px;
@@ -53,11 +53,12 @@ h2 {
 }
 
 h3 {
-  font-family: "Inter", sans-serif;
+  font-family: "Instrument Sans", sans-serif;
   font-weight: 400;
   font-style: normal;
   font-size: 15px;
   letter-spacing: -0.03rem;
+  text-transform:uppercase
 }
 
 a{
@@ -160,8 +161,10 @@ header {
 
 
 
-
-
+.img_header{
+  width: 30vw;
+  height: 30%;
+}
 
 
 
@@ -194,7 +197,7 @@ body.intro-active .alonso {
 }
 
 body.intro-active .alonso {
-  clip-path: inset(0% 0% 100% 0%);
+  --alonso-mask: 1;
 }
 
 nav>div {
@@ -211,6 +214,33 @@ nav>div {
 
 nav>div:last-child>h3{
   text-align: end;
+}
+
+.home-hero {
+  position: relative;
+  min-height: 120vh;
+}
+
+.home_header {
+  position: relative;
+  height: 100vh;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  padding: 0 5vw 6vh;
+}
+
+.home_header-media {
+  width: clamp(220px, 40vw, 520px);
+  max-width: 80vw;
+  transform-origin: center bottom;
+  will-change: width;
+}
+
+.home_header-media img {
+  display: block;
+  width: 100%;
+  height: auto;
 }
 
 
@@ -419,23 +449,4 @@ nav>div:last-child>h3{
 .about-txt{
   display: flex;
   flex-direction: row;
-}
-
-.spiral {
-  position: relative;
-  width: 100vw;
-  min-height: 100vh;
-  overflow: hidden;
-  background: transparent;
-  pointer-events: auto;
-  padding-top: 3%;
-}
-
-.spiral__canvas {
-  width: 100%;
-  height: 100%;
-  display: block;
-  pointer-events: none;
-  position: absolute;
-  inset: 0;
 }
