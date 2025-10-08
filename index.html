@@ -14,9 +14,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
-    <link
-        href="https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap"
-        rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Instrument+Sans:ital,wght@0,400..700;1,400..700&family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap" rel="stylesheet">
 
     <script type="module" src="https://unpkg.com/@google/model-viewer/dist/model-viewer.min.js"></script>
     <!-- CSS -->
@@ -33,60 +31,25 @@
     <!-- HOME -->
     <section class="home" id="home">
         <!-- NAV BAR -->
+         <div > 
+            <img src="media/img/alonsosantamaria.svg" alt="" class="alonso">
+         </div>
         <nav>
             <div class="info">
-                <p>2k25</p>
+                <h3> BASED IN MADRID</h3>
             </div>
-            <div class="logo">
-                <a href="index.html">
-                    <img src="media/img/logo_alonso_&_dani.svg" alt="">
-                </a>
+            <div class="menu">
+                <a href=""><h3>WORK</h3></a>
+                <a href=""><h3>ABOUT</h3></a>
+                <a href=""><h3>CONTACT</h3></a>
             </div>
-            <div class="toggle-btn">
-                <button class="burger" onclick="this.classList.toggle('active')"></button>
+            <div>
+                <h3>ART DIRECTOR, GRAPHIC DESIGNER, WEB DESIGNER </h3>
             </div>
         </nav>
-        <div class="overlay">
-            <div class="overlay-menu">
-                <div class="menu-item">
-                    <p><a href="index.html">HOME</a></p>
-                </div>
-                <div class="menu-item">
-                    <p id="active"><a href="work.html">WORK</a></p>
-                </div>
-                <div class="menu-item">
-                    <p><a href="contact.html">CONTACT</a></p>
-                </div>
-            </div>
-        </div>
-
-        <!-- Marquees -->
-        <section class="marquee-wrapper">
-            <div class="marquee-track left">
-                <img src="media/img/minority/minority_app_icon.webp" alt="project">
-                <img src="media/img/madrid_fusion/madrid_fusion_totebag.webp" alt="project">
-                <img src="media/img/valencia_wines/valenci_wines_tres.webp" alt="project">
-            </div>
-            <div class="marquee-track right">
-                <img src="media/img/keller/keller_camiseta.webp" alt="project">
-                <img src="media/img/thompson/thompson_mural_comida.webp" alt="project">
-                <img src="media/img/cofi/cofi_individual.webp" alt="project">
-            </div>
-            <div class="reveal-title">
-                <h1>HI I'M ALONSO SANTAMARÍA</h1>
-                <h2>ART DIRECTOR & GRAPHIC DESIGNER</h2>
-                <p>Based in Madrid</p>
-            </div>
-            <!-- Modelo 3D -->
-            <!-- <model-viewer id="escorpionModel" src="3d/escorpiones.glb" alt="Modelo Escorpión" camera-controls
-                disable-zoom
-
-              exposure="1" 
-              camera-controls
-                style="position: absolute; left: -100vw; top: 50%; transform: translateY(-50%); width: 50vw; height: 50vh;"
-                autoplay exposure="1">
-            </model-viewer> -->
-
+      
+        <section class="spiral" id="spiral" aria-hidden="true">
+            <canvas class="spiral__canvas"></canvas>
         </section>
 
         <!-- Galería -->
@@ -134,23 +97,19 @@
 
             </figure>
         </section>
-        <section id="about">
-            <h1>And this would have to be the part of about</h1>
-            <h2>But i dont have to much to tell you</h2>
-            <div class="about-txt">
-                <figure>
-                    <img src="media/img/hello.png" alt="">
-                </figure>
-                <h1>I love to visit museums and art gallerys. And i loooove the wine bars</h1>
-            </div>
-        </section>
+    
     </section>
-
 
     <!-- GSAP + ScrollTrigger -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/CustomEase.min.js"></script>
+
+    <script src="https://unpkg.com/three@0.160.0/build/three.min.js"></script>
+    <script type="module">
+        import { RoomEnvironment } from "https://unpkg.com/three@0.160.0/examples/jsm/environments/RoomEnvironment.js";
+        window.THREE_RoomEnvironment = RoomEnvironment;
+    </script>
 
 
 
