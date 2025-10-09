@@ -1,5 +1,22 @@
 window.addEventListener('DOMContentLoaded', () => {
-    document.body.classList.add("intro-active", "logo-hidden");
+    const body = document.body;
+    const homeSection = document.querySelector(".home");
+    const introSection = document.querySelector(".intro");
+
+    if (!homeSection || !introSection) {
+        body.classList.remove("intro-active");
+        body.classList.remove("logo-hidden");
+        body.classList.add("logo-visible");
+        body.style.overflow = "auto";
+        body.style.overflowX = "hidden";
+
+        window.requestAnimationFrame(() => {
+            window.dispatchEvent(new Event("logo:refresh"));
+        });
+        return;
+    }
+
+    body.classList.add("intro-active", "logo-hidden");
     const tl = gsap.timeline();
 
     tl.to(".home", {
@@ -151,7 +168,11 @@ if (alonsoLogo) {
         alonsoLogo.addEventListener("load", refreshMetrics);
     }
 
-    hideLogo();
+    if (body.classList.contains("intro-active")) {
+        hideLogo();
+    } else {
+        showLogo();
+    }
     requestStateUpdate();
 
     window.addEventListener("scroll", requestStateUpdate, {
