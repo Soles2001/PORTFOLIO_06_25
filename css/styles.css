@@ -12,6 +12,8 @@
 
 :root {
   --logo-nav-offset: clamp(80px, 11vw, 160px);
+  --home-floor-offset: clamp(32px, 7vh, 120px);
+  --gallery-card-height: 50vh;
 }
 
 body {
@@ -70,6 +72,7 @@ a{
 #gallery a {
   height: 100%;
   width: 100%;
+  display: block;
 }
 
 P {
@@ -229,32 +232,49 @@ nav>div:last-child>h3{
 .home_header {
   position: relative;
   height: 100vh;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: clamp(16px, 4vw, 72px);
-  padding: 0 3% 1%;
   width: 100vw;
+  padding: 0;
   overflow: visible;
 }
 
-.home_header>h3 {
-  flex: 1;
-  max-width: clamp(220px, 22vw, 360px);
-}
-
-.home_header>h3:last-of-type {
-  text-align: end;
-}
-
 .home_header-media {
-  position: relative;
-  flex: 0 0 auto;
+  position: absolute;
+  left: 50%;
+  bottom: calc(var(--home-floor-offset) * 0.5);
+  transform: translate3d(-50%, 0, 0);
   width: clamp(220px, 32vw, 420px);
-  aspect-ratio: 1 / 1;
+  aspect-ratio: 4 / 5;
+  display: block;
+  max-width: 100vw;
   overflow: hidden;
-  transform-origin: center center;
-  will-change: transform;
+  will-change: width, height, transform;
+  z-index: 1;
+}
+
+.home_header-copy {
+  position: fixed;
+  bottom: var(--home-floor-offset);
+  width: clamp(220px, 24vw, 360px);
+  pointer-events: none;
+  z-index: 9999990;
+  opacity: 1;
+  transition: opacity 0.3s ease;
+}
+
+.home_header-copy.is-released {
+  position: absolute;
+  bottom: calc(var(--home-floor-offset) * 0.5);
+  pointer-events: auto;
+}
+
+.home_header-copy--left {
+  left: 3%;
+  text-align: left;
+}
+
+.home_header-copy--right {
+  right: 3%;
+  text-align: right;
 }
 
 .home_header-media a {
@@ -270,28 +290,92 @@ nav>div:last-child>h3{
   object-fit: cover;
 }
 
+.home_projects {
+  position: relative;
+  padding: clamp(80px, 12vh, 160px) 3% clamp(120px, 18vh, 200px);
+  display: flex;
+  flex-direction: column;
+  gap: clamp(96px, 18vh, 220px);
+}
+
+.home_project {
+  min-height: 80vh;
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.12);
+  padding-bottom: clamp(40px, 8vh, 120px);
+  text-transform: uppercase;
+  letter-spacing: -0.02em;
+}
+
+.home_project:last-child {
+  border-bottom: none;
+}
+
+.home_project-index {
+  font-family: "Instrument Sans", sans-serif;
+  font-size: clamp(12px, 1.1vw, 16px);
+}
+
+.home_project-title {
+  flex: 1;
+  margin: 0 clamp(32px, 6vw, 120px);
+  font-family: "Instrument Sans", sans-serif;
+  font-size: clamp(20px, 4vw, 48px);
+  letter-spacing: -0.04em;
+}
+
+.home_project-year {
+  font-family: "Instrument Sans", sans-serif;
+  font-size: clamp(12px, 1vw, 16px);
+  opacity: 0.6;
+}
+
+.home_project.is-active .home_project-title {
+  opacity: 1;
+}
+
+.home_project:not(.is-active) .home_project-title {
+  opacity: 0.4;
+  transition: opacity 0.3s ease;
+}
+
+footer {
+  padding: clamp(120px, 18vh, 220px) 3% clamp(60px, 12vh, 140px);
+  background-color: #f4f4f4;
+}
+
+.footer-content {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  font-family: "Instrument Sans", sans-serif;
+}
+
 
 #gallery {
-  height: auto;
+  position: relative;
   width: 100vw;
   display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-wrap: wrap;
-  gap: 2em;
-  padding: 2rem;
+  flex-direction: column;
+  gap: clamp(48px, 10vh, 160px);
+  padding: calc(var(--home-floor-offset) * 1) 3% 20vh;
+  margin-top: calc(var(--gallery-card-height) * -0.5);
 }
 
 .gallery-item {
-  position: relative;
-  width: 47vw;
-  height: 80vh;
+  position: sticky;
+  top: calc((100vh - var(--gallery-card-height)) / 2);
+  height: var(--gallery-card-height);
+  width: 100%;
   overflow: hidden;
   background-color: var(--bg-color, #000);
-  transition: all 0.5s ease-in-out;
+  transition: transform 0.5s ease;
   display: flex;
   align-items: center;
   justify-content: center;
+  z-index: 2;
 }
 
 .gallery-item img {
@@ -325,6 +409,46 @@ nav>div:last-child>h3{
 
 .gallery-item:hover figcaption {
   bottom: 5%;
+}
+
+@media only screen and (max-width: 1024px) {
+  :root {
+    --gallery-card-height: 60vh;
+    --home-floor-offset: clamp(28px, 9vh, 96px);
+  }
+
+  .home_header-copy {
+    width: clamp(220px, 34vw, 360px);
+  }
+}
+
+@media only screen and (max-width: 640px) {
+  :root {
+    --gallery-card-height: 70vh;
+    --home-floor-offset: clamp(24px, 12vw, 80px);
+  }
+
+  .home_header-copy {
+    width: 46vw;
+  }
+
+  .home_header-copy--left {
+    left: 5%;
+  }
+
+  .home_header-copy--right {
+    right: 5%;
+  }
+}
+
+@media only screen and (max-width: 480px) {
+  :root {
+    --gallery-card-height: 80vh;
+  }
+
+  .home_header-copy {
+    width: 48vw;
+  }
 }
 
 .marquee-wrapper {
@@ -435,17 +559,8 @@ nav>div:last-child>h3{
   object-fit: contain;
 }
 
-
-@media only screen and (max-width: 1567px) {
-  .gallery-item {
-    width: 43vw;
-  }
-}
-
-@media only screen and (max-width: 1300px) {
-  .gallery-item {
-    width: 90vw;
-  }
+footer{
+  height: 100vh;
 }
 
 

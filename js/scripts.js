@@ -268,6 +268,7 @@ if (alonsoLogo) {
 }
 
 document.addEventListener("DOMContentLoaded", setupHomeHeaderScroll);
+document.addEventListener("DOMContentLoaded", setupStackedGallery);
 
 function setupHomeHeaderScroll() {
     if (typeof gsap === "undefined" || typeof ScrollTrigger === "undefined") {
@@ -280,51 +281,164 @@ function setupHomeHeaderScroll() {
 
     const headerWrapper = document.querySelector(".home_header");
     const media = document.querySelector(".home_header-media");
+    const mediaLink = media ? media.querySelector("a") : null;
+    const mediaImage = mediaLink ? mediaLink.querySelector("img") : null;
+    const headerCopy = gsap.utils.toArray(".home_header-copy");
 
-    if (!headerWrapper || !media) {
+    if (!headerWrapper || !media || !mediaLink || !mediaImage) {
+        return;
+    }
+
+    const projectData = [
+        {
+            href: "cofi.html",
+            image: "media/img/cofi/cofi_individual.webp",
+            alt: "Cofi branding packaging"
+        },
+        {
+            href: "thompson.html",
+            image: "media/img/thompson/thompson_mural_comida.webp",
+            alt: "Thompson food mural"
+        },
+        {
+            href: "madrid_fusion.html",
+            image: "media/img/madrid_fusion/madrid_fusion_totebag.webp",
+            alt: "Madrid Fusión tote bag"
+        },
+        {
+            href: "minority.html",
+            image: "media/img/minority/minority_app_icon.webp",
+            alt: "Minority app icon"
+        },
+        {
+            href: "valencia_wines.html",
+            image: "media/img/valencia_wines/valenci_wines_tres.webp",
+            alt: "Valencia Wines bottles"
+        },
+        {
+            href: "keller.html",
+            image: "media/img/keller/keller_camiseta.webp",
+            alt: "Keller apparel graphic"
+        },
+        {
+            href: "chupachups.html",
+            image: "media/img/chupachups/chupachups_lettering.webp",
+            alt: "Chupa Chups lettering"
+        },
+        {
+            href: "adn_forum.html",
+            image: "media/img/adn/adn_vertical_foto.webp",
+            alt: "ADN Forum poster"
+        }
+    ];
+
+    if (!projectData.length) {
         return;
     }
 
     const prefersReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    const targetHeight = () => window.innerHeight * 0.6;
+    const targetWidth = () => window.innerWidth;
+
     let timeline = null;
-    let cachedTargets = null;
-
-    const computeTargets = () => {
-        gsap.set(media, {
-            x: 0,
-            y: 0,
-            scaleX: 1,
-            scaleY: 1,
-            transformOrigin: "center center"
-        });
-
-        const mediaRect = media.getBoundingClientRect();
-        const parentRect = headerWrapper.getBoundingClientRect();
-
-        const currentCenterX = (mediaRect.left - parentRect.left) + (mediaRect.width / 2);
-        const currentCenterY = (mediaRect.top - parentRect.top) + (mediaRect.height / 2);
-        const targetCenterX = parentRect.width / 2;
-        const targetCenterY = parentRect.height / 2;
-
-        const targetWidth = window.innerWidth;
-        const targetHeight = window.innerHeight * 0.5;
-
-        const x = targetCenterX - currentCenterX;
-        const y = targetCenterY - currentCenterY;
-        const scaleX = targetWidth / mediaRect.width;
-        const scaleY = targetHeight / mediaRect.height;
-
-        cachedTargets = {
-            x,
-            y,
-            scaleX,
-            scaleY
-        };
-
-        return cachedTargets;
+    let pinTrigger = null;
+    let imageSwapTween = null;
+    let isMediaExpanded = false;
+    let activeIndex = -1;
+    const driver = {
+        value: 0
     };
 
-    const getTargets = () => cachedTargets || computeTargets();
+    const clearMediaStyles = () => {
+        gsap.set(media, {
+            width: "",
+            height: "",
+            top: "",
+            bottom: "",
+            yPercent: 0
+        });
+    };
+
+    const applyPinnedState = () => {
+        gsap.set(media, {
+            width: targetWidth(),
+            height: targetHeight(),
+            top: "50%",
+            bottom: "auto",
+            yPercent: -50
+        });
+        isMediaExpanded = true;
+    };
+
+    const toggleCopyRelease = (released) => {
+        if (!headerCopy.length) {
+            return;
+        }
+
+        headerCopy.forEach((copy) => {
+            copy.classList.toggle("is-released", released);
+        });
+    };
+
+    const applyProject = (index, options = {}) => {
+        if (index < 0 || index >= projectData.length || index === activeIndex) {
+            return;
+        }
+
+        const project = projectData[index];
+        activeIndex = index;
+
+        if (project.href) {
+            mediaLink.setAttribute("href", project.href);
+        }
+
+        const updateImage = () => {
+            if (project.image) {
+                mediaImage.setAttribute("src", project.image);
+            }
+            mediaImage.setAttribute("alt", project.alt || "");
+        };
+
+        if (options.immediate || !project.image) {
+            updateImage();
+            gsap.set(mediaImage, {
+                autoAlpha: 1
+            });
+            imageSwapTween = null;
+            return;
+        }
+
+        if (imageSwapTween) {
+            imageSwapTween.kill();
+        }
+
+        imageSwapTween = gsap.timeline({
+            defaults: {
+                ease: "power2.out"
+            }
+        });
+
+        imageSwapTween
+            .to(mediaImage, {
+                autoAlpha: 0,
+                duration: 0.25,
+                overwrite: "auto"
+            })
+            .add(updateImage)
+            .to(mediaImage, {
+                autoAlpha: 1,
+                duration: 0.4
+            });
+    };
+
+    applyProject(0, {
+        immediate: true
+    });
+
+    const getScrollLength = () => {
+        const viewport = window.innerHeight;
+        return Math.max(viewport * 1.6, projectData.length * viewport * 0.9);
+    };
 
     const buildTimeline = () => {
         if (timeline) {
@@ -333,62 +447,187 @@ function setupHomeHeaderScroll() {
             timeline = null;
         }
 
-        cachedTargets = null;
+        if (pinTrigger) {
+            pinTrigger.kill();
+            pinTrigger = null;
+        }
+
+        clearMediaStyles();
+        isMediaExpanded = false;
+        driver.value = 0;
+        gsap.killTweensOf(driver);
+
+        const scrollTriggerConfig = {
+            trigger: headerWrapper,
+            start: "top top",
+            end: () => "+=" + getScrollLength(),
+            pin: true,
+            anticipatePin: 1,
+            invalidateOnRefresh: true,
+            onRefreshInit: clearMediaStyles,
+            onKill: clearMediaStyles,
+            onLeave: () => toggleCopyRelease(true),
+            onEnterBack: () => toggleCopyRelease(false)
+        };
 
         if (prefersReducedMotion) {
-            gsap.set(media, {
-                x: 0,
-                y: 0,
-                scaleX: 1,
-                scaleY: 1,
-                transformOrigin: "center center"
+            applyPinnedState();
+            pinTrigger = ScrollTrigger.create({
+                ...scrollTriggerConfig,
+                onRefresh: () => {
+                    applyPinnedState();
+                    applyProject(0, {
+                        immediate: true
+                    });
+                }
             });
             return;
         }
 
+        if (headerCopy.length) {
+            gsap.set(headerCopy, {
+                opacity: 1
+            });
+        }
+
         timeline = gsap.timeline({
             scrollTrigger: {
-                trigger: headerWrapper,
-                start: "top top",
-                end: "+=160%",
-                scrub: true,
-                pin: true,
-                anticipatePin: 1,
-                invalidateOnRefresh: true,
-                onRefreshInit: () => {
-                    cachedTargets = null;
-                }
+                ...scrollTriggerConfig,
+                scrub: true
             }
         });
 
         timeline.to(media, {
-            x: () => getTargets().x,
-            y: () => getTargets().y,
-            scaleX: () => getTargets().scaleX,
-            scaleY: () => getTargets().scaleY,
-            ease: "none"
+            width: () => targetWidth(),
+            height: () => targetHeight(),
+            top: "50%",
+            bottom: "auto",
+            yPercent: -50,
+            duration: 1,
+            ease: "power2.inOut",
+            onComplete: () => {
+                isMediaExpanded = true;
+            },
+            onReverseComplete: () => {
+                isMediaExpanded = false;
+                applyProject(0, {
+                    immediate: true
+                });
+            }
+        });
+
+        timeline.to(driver, {
+            value: projectData.length - 1 + 0.999,
+            duration: Math.max(1, projectData.length),
+            ease: "none",
+            onStart: () => {
+                isMediaExpanded = true;
+            },
+            onUpdate: () => {
+                if (!isMediaExpanded) {
+                    return;
+                }
+
+                const nextIndex = Math.min(projectData.length - 1, Math.floor(driver.value));
+                applyProject(nextIndex);
+            }
         });
     };
 
     buildTimeline();
 
     const refreshScroll = () => {
-        cachedTargets = null;
         if (timeline) {
             timeline.invalidate();
-        }
-        if (ScrollTrigger) {
+            if (timeline.scrollTrigger) {
+                timeline.scrollTrigger.refresh();
+            }
+        } else if (pinTrigger) {
+            pinTrigger.refresh();
+        } else if (ScrollTrigger) {
             ScrollTrigger.refresh();
         }
     };
 
     const handleResize = () => {
-        cachedTargets = null;
         buildTimeline();
         refreshScroll();
+        if (typeof ScrollTrigger !== "undefined") {
+            ScrollTrigger.refresh();
+        }
     };
 
     window.addEventListener("logo:refresh", refreshScroll);
     window.addEventListener("resize", handleResize);
     window.addEventListener("orientationchange", handleResize);
+}
+
+function setupStackedGallery() {
+    const galleryItems = Array.from(document.querySelectorAll("#gallery .gallery-item"));
+
+    if (!galleryItems.length) {
+        return;
+    }
+
+    galleryItems.forEach((item, index) => {
+        item.style.zIndex = String(galleryItems.length - index + 2);
+    });
+
+    if (typeof gsap === "undefined" || typeof ScrollTrigger === "undefined") {
+        return;
+    }
+
+    if (!gsap.plugins || !gsap.plugins.ScrollTrigger) {
+        gsap.registerPlugin(ScrollTrigger);
+    }
+
+    const prefersReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+    if (prefersReducedMotion) {
+        return;
+    }
+
+    galleryItems.forEach((item) => {
+        gsap.set(item, {
+            scale: 0.96
+        });
+
+        ScrollTrigger.create({
+            trigger: item,
+            start: "top center",
+            end: () => "+=" + window.innerHeight * 0.6,
+            onEnter: () => {
+                gsap.to(item, {
+                    scale: 1,
+                    duration: 0.4,
+                    ease: "power2.out",
+                    overwrite: "auto"
+                });
+            },
+            onLeave: () => {
+                gsap.to(item, {
+                    scale: 0.96,
+                    duration: 0.3,
+                    ease: "power2.inOut",
+                    overwrite: "auto"
+                });
+            },
+            onEnterBack: () => {
+                gsap.to(item, {
+                    scale: 1,
+                    duration: 0.4,
+                    ease: "power2.out",
+                    overwrite: "auto"
+                });
+            },
+            onLeaveBack: () => {
+                gsap.to(item, {
+                    scale: 0.96,
+                    duration: 0.3,
+                    ease: "power2.inOut",
+                    overwrite: "auto"
+                });
+            }
+        });
+    });
 }
