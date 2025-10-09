@@ -278,24 +278,53 @@ function setupHomeHeaderScroll() {
         gsap.registerPlugin(ScrollTrigger);
     }
 
-    const heroSection = document.querySelector(".home-hero");
     const headerWrapper = document.querySelector(".home_header");
     const media = document.querySelector(".home_header-media");
 
-    if (!heroSection || !headerWrapper || !media) {
+    if (!headerWrapper || !media) {
         return;
     }
 
     const prefersReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    let timeline = null;
+    let cachedTargets = null;
 
-    const baseWidth = () => {
-        const width = Math.max(window.innerWidth * 0.32, 220);
-        return Math.min(width, targetWidth() * 0.75);
+    const computeTargets = () => {
+        gsap.set(media, {
+            x: 0,
+            y: 0,
+            scaleX: 1,
+            scaleY: 1,
+            transformOrigin: "center center"
+        });
+
+        const mediaRect = media.getBoundingClientRect();
+        const parentRect = headerWrapper.getBoundingClientRect();
+
+        const currentCenterX = (mediaRect.left - parentRect.left) + (mediaRect.width / 2);
+        const currentCenterY = (mediaRect.top - parentRect.top) + (mediaRect.height / 2);
+        const targetCenterX = parentRect.width / 2;
+        const targetCenterY = parentRect.height / 2;
+
+        const targetWidth = window.innerWidth;
+        const targetHeight = window.innerHeight * 0.5;
+
+        const x = targetCenterX - currentCenterX;
+        const y = targetCenterY - currentCenterY;
+        const scaleX = targetWidth / mediaRect.width;
+        const scaleY = targetHeight / mediaRect.height;
+
+        cachedTargets = {
+            x,
+            y,
+            scaleX,
+            scaleY
+        };
+
+        return cachedTargets;
     };
 
-    const targetWidth = () => Math.max(window.innerWidth * 0.8, 320);
-
-    let timeline = null;
+    const getTargets = () => cachedTargets || computeTargets();
 
     const buildTimeline = () => {
         if (timeline) {
@@ -304,47 +333,62 @@ function setupHomeHeaderScroll() {
             timeline = null;
         }
 
-        const base = `${baseWidth()}px`;
-        const target = `${targetWidth()}px`;
-
-        gsap.set(media, {
-            width: base
-        });
+        cachedTargets = null;
 
         if (prefersReducedMotion) {
             gsap.set(media, {
-                width: target
+                x: 0,
+                y: 0,
+                scaleX: 1,
+                scaleY: 1,
+                transformOrigin: "center center"
             });
             return;
         }
 
         timeline = gsap.timeline({
             scrollTrigger: {
-                trigger: heroSection,
+                trigger: headerWrapper,
                 start: "top top",
-                end: "+=140%",
+                end: "+=160%",
                 scrub: true,
-                pin: headerWrapper,
-                pinSpacing: true,
-                anticipatePin: 1
+                pin: true,
+                anticipatePin: 1,
+                invalidateOnRefresh: true,
+                onRefreshInit: () => {
+                    cachedTargets = null;
+                }
             }
         });
 
         timeline.to(media, {
-            width: target,
+            x: () => getTargets().x,
+            y: () => getTargets().y,
+            scaleX: () => getTargets().scaleX,
+            scaleY: () => getTargets().scaleY,
             ease: "none"
         });
     };
 
     buildTimeline();
 
-    const handleResize = () => {
-        buildTimeline();
+    const refreshScroll = () => {
+        cachedTargets = null;
+        if (timeline) {
+            timeline.invalidate();
+        }
         if (ScrollTrigger) {
             ScrollTrigger.refresh();
         }
     };
 
+    const handleResize = () => {
+        cachedTargets = null;
+        buildTimeline();
+        refreshScroll();
+    };
+
+    window.addEventListener("logo:refresh", refreshScroll);
     window.addEventListener("resize", handleResize);
     window.addEventListener("orientationchange", handleResize);
 }
