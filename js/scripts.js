@@ -30,108 +30,6 @@ window.addEventListener('DOMContentLoaded', () => {
 });
 
 
-// NAVBAR FIX
-document.addEventListener("DOMContentLoaded", function () {
-    const toggleButton = document.querySelector(".burger");
-    const overlay = document.querySelector(".overlay");
-
-    if (!toggleButton || !overlay) return;
-
-    let isOpen = false;
-
-    const timeline = gsap.timeline({
-        paused: true
-    });
-
-    timeline.to(".overlay", {
-        duration: 0.5,
-        clipPath: "polygon(0% 0%, 100% 0%, 100% 100%, 0% 100%)",
-        ease: "power4.inOut"
-    });
-
-    timeline.fromTo(".menu-item p", {
-        y: 225,
-    }, {
-        y: 0,
-        duration: 0.5,
-        stagger: 0.2,
-        ease: "power4.out"
-    }, "-=0.3");
-
-    toggleButton.addEventListener("click", function () {
-        toggleButton.classList.toggle("active");
-        isOpen ? timeline.reverse() : timeline.play();
-        isOpen = !isOpen;
-    });
-
-    // Animar h1 después de que los marquees terminen (4s)
-    // Mostrar h1 + side images después de que los marquees terminen (4s)
-    gsap.set(".reveal-title h1", {
-        y: 100
-    });
-    gsap.set(".reveal-title h2", {
-        y: 120
-    });
-    gsap.set(".reveal-title p", {
-        y: 140
-    });
-
-    gsap.set(".marquee-track.left", {
-        left: "-140%"
-    });
-
-    const leftAnim = gsap.timeline({
-        delay: 3
-    });
-
-
-   // REGISTRAMOS CURVA PERSONALIZADA
-CustomEase.create("slowInMiddle", "M0,0 C0.2,0 0.3,0.5 0.5,0.5 0.7,0.5 0.8,1 1,1");
-
-// MARQUEE IZQUIERDA
-gsap.set(".marquee-track.left", { left: "-140%" });
-
-gsap.to(".marquee-track.left", {
-  left: "100%",
-  duration: 8,
-  delay: 3,
-  ease: "slowInMiddle"
-});
-
-// MARQUEE DERECHA
-gsap.set(".marquee-track.right", { right: "-140%" });
-
-gsap.to(".marquee-track.right", {
-  right: "100%",
-  duration: 8,
-  delay: 3,
-  ease: "slowInMiddle"
-});
-
-
-
-
-
-    gsap.timeline({
-            delay: 4.5
-        })
-        .to(".reveal-title h1,.reveal-title h2,.reveal-title p ", {
-            duration: 1,
-            opacity: 1,
-            y: 0,
-            ease: "power3.easeOut"
-        })
-
-    // .to("#escorpionModel", {
-    //     duration: 1.5,
-    //     left: '5vw',
-    //     ease: "power3.out"
-    // }, "-=0.5"); // Opcional: solapar un poco con la animación anterir
-
-
-});
-
-
 let items = gsap.utils.toArray("a"),
     cursor = document.querySelector("#Cursor"),
     xTo = gsap.quickTo(cursor, "x", {
@@ -268,7 +166,6 @@ if (alonsoLogo) {
 }
 
 document.addEventListener("DOMContentLoaded", setupHomeHeaderScroll);
-document.addEventListener("DOMContentLoaded", setupStackedGallery);
 document.addEventListener("DOMContentLoaded", setupFooterThemeToggle);
 
 function setupHomeHeaderScroll() {
@@ -293,6 +190,15 @@ function setupHomeHeaderScroll() {
     mediaLink.classList.add("home_header-media-link");
     mediaImage.classList.add("home_header-media-image", "home_header-media-image--current");
 
+    let mediaTitleEl = media.querySelector(".home_header-media-title");
+
+    if (!mediaTitleEl) {
+        mediaTitleEl = document.createElement("span");
+        mediaTitleEl.className = "home_header-media-title";
+        mediaTitleEl.setAttribute("aria-hidden", "true");
+        media.appendChild(mediaTitleEl);
+    }
+
     let mediaTransitionImage = mediaLink.querySelector(".home_header-media-image--transition");
 
     if (!mediaTransitionImage) {
@@ -312,43 +218,68 @@ function setupHomeHeaderScroll() {
         autoAlpha: 0
     });
 
+    let pendingProjectTitle = "";
+    const updateProjectTitleVisibility = () => {
+        if (!mediaTitleEl) {
+            return;
+        }
+        if (isMediaExpanded && pendingProjectTitle) {
+            mediaTitleEl.textContent = pendingProjectTitle;
+        } else {
+            mediaTitleEl.textContent = "";
+        }
+    };
+
+    const setProjectTitle = (title) => {
+        pendingProjectTitle = title || "";
+        updateProjectTitleVisibility();
+    };
+
     const projectData = [
         {
+            title: "Cofi",
             href: "cofi.html",
             image: "media/img/cofi/cofi_individual.webp",
             alt: "Cofi branding packaging"
         },
         {
+            title: "Thompson",
             href: "thompson.html",
             image: "media/img/thompson/thompson_mural_comida.webp",
             alt: "Thompson food mural"
         },
         {
+            title: "Madrid Fusión",
             href: "madrid_fusion.html",
             image: "media/img/madrid_fusion/madrid_fusion_totebag.webp",
             alt: "Madrid Fusión tote bag"
         },
         {
+            title: "Minority",
             href: "minority.html",
             image: "media/img/minority/minority_app_icon.webp",
             alt: "Minority app icon"
         },
         {
+            title: "Valencia Wines",
             href: "valencia_wines.html",
             image: "media/img/valencia_wines/valenci_wines_tres.webp",
             alt: "Valencia Wines bottles"
         },
         {
+            title: "Keller",
             href: "keller.html",
             image: "media/img/keller/keller_camiseta.webp",
             alt: "Keller apparel graphic"
         },
         {
+            title: "Chupa Chups",
             href: "chupachups.html",
             image: "media/img/chupachups/chupachups_lettering.webp",
             alt: "Chupa Chups lettering"
         },
         {
+            title: "ADN Forum",
             href: "adn_forum.html",
             image: "media/img/adn/adn_vertical_foto.webp",
             alt: "ADN Forum poster"
@@ -367,6 +298,11 @@ function setupHomeHeaderScroll() {
     let pinTrigger = null;
     let imageSwapTween = null;
     let isMediaExpanded = false;
+    const setExpandedState = (expanded) => {
+        isMediaExpanded = expanded;
+        media.classList.toggle("home_header-media--expanded", expanded);
+        updateProjectTitleVisibility();
+    };
     let activeIndex = -1;
     const driver = {
         value: 0
@@ -390,6 +326,9 @@ function setupHomeHeaderScroll() {
                 autoAlpha: 0
             });
         }
+        setExpandedState(false);
+        driver.value = Math.max(0, activeIndex);
+        lastDriverValue = driver.value;
     };
 
     const applyPinnedState = () => {
@@ -400,7 +339,7 @@ function setupHomeHeaderScroll() {
             bottom: "auto",
             yPercent: -50
         });
-        isMediaExpanded = true;
+        setExpandedState(true);
     };
 
     const toggleCopyRelease = (released) => {
@@ -429,6 +368,7 @@ function setupHomeHeaderScroll() {
                 : "up";
 
         activeIndex = index;
+        setProjectTitle(project.title);
 
         if (project.href) {
             mediaLink.setAttribute("href", project.href);
@@ -523,6 +463,26 @@ function setupHomeHeaderScroll() {
         immediate: true
     });
 
+    const advanceProject = (direction = "down") => {
+        if (!projectData.length) {
+            return;
+        }
+
+        const nextIndex = (activeIndex + 1) % projectData.length;
+        applyProject(nextIndex, {
+            direction
+        });
+
+        if (
+            !timeline ||
+            !timeline.scrollTrigger ||
+            !timeline.scrollTrigger.isActive()
+        ) {
+            driver.value = nextIndex;
+            lastDriverValue = driver.value;
+        }
+    };
+
     const getScrollLength = () => {
         const viewport = window.innerHeight;
         return Math.max(viewport * 1.6, projectData.length * viewport * 0.9);
@@ -541,7 +501,6 @@ function setupHomeHeaderScroll() {
         }
 
         clearMediaStyles();
-        isMediaExpanded = false;
         driver.value = 0;
         lastDriverValue = driver.value;
         gsap.killTweensOf(driver);
@@ -594,24 +553,29 @@ function setupHomeHeaderScroll() {
             yPercent: -50,
             duration: 1,
             ease: "power2.inOut",
+            onStart: () => {
+                driver.value = Math.max(0, activeIndex);
+                lastDriverValue = driver.value;
+            },
             onComplete: () => {
-                isMediaExpanded = true;
+                setExpandedState(true);
             },
             onReverseComplete: () => {
-                isMediaExpanded = false;
-                applyProject(0, {
-                    immediate: true
-                });
+                setExpandedState(false);
+                driver.value = Math.max(0, activeIndex);
                 lastDriverValue = driver.value;
             }
         });
 
         timeline.to(driver, {
             value: projectData.length - 1 + 0.999,
+            startAt: () => ({
+                value: Math.max(0, activeIndex)
+            }),
             duration: Math.max(1, projectData.length),
             ease: "none",
             onStart: () => {
-                isMediaExpanded = true;
+                setExpandedState(true);
                 lastDriverValue = driver.value;
             },
             onUpdate: () => {
@@ -635,6 +599,48 @@ function setupHomeHeaderScroll() {
     };
 
     buildTimeline();
+
+    const inactivityDelay = 5000;
+    let inactivityTimer = null;
+    let lastInteractionTime = Date.now();
+
+    const scheduleInactivityAdvance = () => {
+        window.clearTimeout(inactivityTimer);
+        inactivityTimer = window.setTimeout(() => {
+            const now = Date.now();
+            if (now - lastInteractionTime < inactivityDelay) {
+                scheduleInactivityAdvance();
+                return;
+            }
+
+            if (isMediaExpanded) {
+                lastInteractionTime = now;
+                scheduleInactivityAdvance();
+                return;
+            }
+
+            advanceProject("down");
+            lastInteractionTime = now;
+            scheduleInactivityAdvance();
+        }, inactivityDelay);
+    };
+
+    const registerInteraction = () => {
+        lastInteractionTime = Date.now();
+        scheduleInactivityAdvance();
+    };
+
+    window.addEventListener("scroll", registerInteraction, {
+        passive: true
+    });
+    window.addEventListener("wheel", registerInteraction, {
+        passive: true
+    });
+    window.addEventListener("touchmove", registerInteraction, {
+        passive: true
+    });
+
+    scheduleInactivityAdvance();
 
     const refreshScroll = () => {
         if (timeline) {
@@ -660,76 +666,6 @@ function setupHomeHeaderScroll() {
     window.addEventListener("logo:refresh", refreshScroll);
     window.addEventListener("resize", handleResize);
     window.addEventListener("orientationchange", handleResize);
-}
-
-function setupStackedGallery() {
-    const galleryItems = Array.from(document.querySelectorAll("#gallery .gallery-item"));
-
-    if (!galleryItems.length) {
-        return;
-    }
-
-    galleryItems.forEach((item, index) => {
-        item.style.zIndex = String(galleryItems.length - index + 2);
-    });
-
-    if (typeof gsap === "undefined" || typeof ScrollTrigger === "undefined") {
-        return;
-    }
-
-    if (!gsap.plugins || !gsap.plugins.ScrollTrigger) {
-        gsap.registerPlugin(ScrollTrigger);
-    }
-
-    const prefersReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-
-    if (prefersReducedMotion) {
-        return;
-    }
-
-    galleryItems.forEach((item) => {
-        gsap.set(item, {
-            scale: 0.96
-        });
-
-        ScrollTrigger.create({
-            trigger: item,
-            start: "top center",
-            end: () => "+=" + window.innerHeight * 0.6,
-            onEnter: () => {
-                gsap.to(item, {
-                    scale: 1,
-                    duration: 0.4,
-                    ease: "power2.out",
-                    overwrite: "auto"
-                });
-            },
-            onLeave: () => {
-                gsap.to(item, {
-                    scale: 0.96,
-                    duration: 0.3,
-                    ease: "power2.inOut",
-                    overwrite: "auto"
-                });
-            },
-            onEnterBack: () => {
-                gsap.to(item, {
-                    scale: 1,
-                    duration: 0.4,
-                    ease: "power2.out",
-                    overwrite: "auto"
-                });
-            },
-            onLeaveBack: () => {
-                gsap.to(item, {
-                    scale: 0.96,
-                    duration: 0.3,
-                    ease: "power2.inOut",
-                    overwrite: "auto"
-                });
-            }
-        });
-    });
 }
 
 function setupFooterThemeToggle() {
