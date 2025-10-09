@@ -365,7 +365,7 @@ body.project-page {
 .project {
   max-width: none;
   margin: 0 auto;
-  padding: max(20vh, var(--logo-nav-offset, 120px)) 3% clamp(80px, 16vh, 160px);
+  padding: max(45vh, var(--logo-nav-offset, 120px)) 3% clamp(80px, 16vh, 160px);
   display: flex;
   flex-direction: column;
   gap: clamp(32px, 6vw, 64px);
