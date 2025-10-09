@@ -269,6 +269,7 @@ if (alonsoLogo) {
 
 document.addEventListener("DOMContentLoaded", setupHomeHeaderScroll);
 document.addEventListener("DOMContentLoaded", setupStackedGallery);
+document.addEventListener("DOMContentLoaded", setupFooterThemeToggle);
 
 function setupHomeHeaderScroll() {
     if (typeof gsap === "undefined" || typeof ScrollTrigger === "undefined") {
@@ -288,6 +289,28 @@ function setupHomeHeaderScroll() {
     if (!headerWrapper || !media || !mediaLink || !mediaImage) {
         return;
     }
+
+    mediaLink.classList.add("home_header-media-link");
+    mediaImage.classList.add("home_header-media-image", "home_header-media-image--current");
+
+    let mediaTransitionImage = mediaLink.querySelector(".home_header-media-image--transition");
+
+    if (!mediaTransitionImage) {
+        mediaTransitionImage = mediaImage.cloneNode(false);
+        mediaTransitionImage.classList.remove("home_header-media-image--current");
+        mediaTransitionImage.classList.add("home_header-media-image", "home_header-media-image--transition");
+        mediaTransitionImage.setAttribute("aria-hidden", "true");
+        mediaTransitionImage.style.opacity = "0";
+        mediaTransitionImage.style.transform = "translate3d(0, 0, 0)";
+        mediaLink.appendChild(mediaTransitionImage);
+    }
+
+    gsap.set([mediaImage, mediaTransitionImage], {
+        xPercent: 0
+    });
+    gsap.set(mediaTransitionImage, {
+        autoAlpha: 0
+    });
 
     const projectData = [
         {
@@ -348,6 +371,7 @@ function setupHomeHeaderScroll() {
     const driver = {
         value: 0
     };
+    let lastDriverValue = driver.value;
 
     const clearMediaStyles = () => {
         gsap.set(media, {
@@ -357,6 +381,15 @@ function setupHomeHeaderScroll() {
             bottom: "",
             yPercent: 0
         });
+        gsap.set(mediaImage, {
+            xPercent: 0
+        });
+        if (mediaTransitionImage) {
+            gsap.set(mediaTransitionImage, {
+                xPercent: 0,
+                autoAlpha: 0
+            });
+        }
     };
 
     const applyPinnedState = () => {
@@ -385,50 +418,105 @@ function setupHomeHeaderScroll() {
             return;
         }
 
+        const previousIndex = activeIndex;
         const project = projectData[index];
+        const immediate = Boolean(options.immediate) || !project.image;
+        const requestedDirection = options.direction;
+        const direction = requestedDirection === "up" || requestedDirection === "down"
+            ? requestedDirection
+            : previousIndex === -1 || index >= previousIndex
+                ? "down"
+                : "up";
+
         activeIndex = index;
 
         if (project.href) {
             mediaLink.setAttribute("href", project.href);
         }
 
-        const updateImage = () => {
+        const setCurrentImage = () => {
             if (project.image) {
                 mediaImage.setAttribute("src", project.image);
+            } else {
+                mediaImage.removeAttribute("src");
             }
             mediaImage.setAttribute("alt", project.alt || "");
         };
 
-        if (options.immediate || !project.image) {
-            updateImage();
+        if (immediate) {
+            setCurrentImage();
             gsap.set(mediaImage, {
+                xPercent: 0,
                 autoAlpha: 1
             });
+            if (mediaTransitionImage) {
+                gsap.set(mediaTransitionImage, {
+                    xPercent: 0,
+                    autoAlpha: 0
+                });
+            }
             imageSwapTween = null;
             return;
         }
 
         if (imageSwapTween) {
             imageSwapTween.kill();
+            imageSwapTween = null;
         }
+
+        if (mediaTransitionImage) {
+            const currentSrc = mediaImage.getAttribute("src");
+            const currentAlt = mediaImage.getAttribute("alt") || "";
+            if (currentSrc) {
+                mediaTransitionImage.setAttribute("src", currentSrc);
+                mediaTransitionImage.setAttribute("alt", currentAlt);
+                gsap.set(mediaTransitionImage, {
+                    xPercent: 0,
+                    autoAlpha: 1
+                });
+            } else {
+                mediaTransitionImage.removeAttribute("src");
+                mediaTransitionImage.setAttribute("alt", "");
+                gsap.set(mediaTransitionImage, {
+                    autoAlpha: 0
+                });
+            }
+        }
+
+        setCurrentImage();
+
+        const enterOffset = direction === "down" ? -100 : 100;
+        const exitOffset = direction === "down" ? 100 : -100;
+
+        gsap.set(mediaImage, {
+            xPercent: enterOffset,
+            autoAlpha: 1
+        });
 
         imageSwapTween = gsap.timeline({
             defaults: {
-                ease: "power2.out"
+                duration: 0.6,
+                ease: "power3.inOut"
+            },
+            onComplete: () => {
+                if (mediaTransitionImage) {
+                    gsap.set(mediaTransitionImage, {
+                        autoAlpha: 0,
+                        xPercent: 0
+                    });
+                }
             }
         });
 
-        imageSwapTween
-            .to(mediaImage, {
-                autoAlpha: 0,
-                duration: 0.25,
-                overwrite: "auto"
-            })
-            .add(updateImage)
-            .to(mediaImage, {
-                autoAlpha: 1,
-                duration: 0.4
-            });
+        if (mediaTransitionImage) {
+            imageSwapTween.to(mediaTransitionImage, {
+                xPercent: exitOffset
+            }, 0);
+        }
+
+        imageSwapTween.to(mediaImage, {
+            xPercent: 0
+        }, 0);
     };
 
     applyProject(0, {
@@ -455,6 +543,7 @@ function setupHomeHeaderScroll() {
         clearMediaStyles();
         isMediaExpanded = false;
         driver.value = 0;
+        lastDriverValue = driver.value;
         gsap.killTweensOf(driver);
 
         const scrollTriggerConfig = {
@@ -513,6 +602,7 @@ function setupHomeHeaderScroll() {
                 applyProject(0, {
                     immediate: true
                 });
+                lastDriverValue = driver.value;
             }
         });
 
@@ -522,14 +612,24 @@ function setupHomeHeaderScroll() {
             ease: "none",
             onStart: () => {
                 isMediaExpanded = true;
+                lastDriverValue = driver.value;
             },
             onUpdate: () => {
                 if (!isMediaExpanded) {
                     return;
                 }
 
-                const nextIndex = Math.min(projectData.length - 1, Math.floor(driver.value));
-                applyProject(nextIndex);
+                const rawValue = driver.value;
+                const nextIndex = Math.min(projectData.length - 1, Math.floor(rawValue));
+                const direction = rawValue >= lastDriverValue ? "down" : "up";
+
+                if (nextIndex !== activeIndex) {
+                    applyProject(nextIndex, {
+                        direction
+                    });
+                }
+
+                lastDriverValue = rawValue;
             }
         });
     };
@@ -629,5 +729,43 @@ function setupStackedGallery() {
                 });
             }
         });
+    });
+}
+
+function setupFooterThemeToggle() {
+    const footer = document.querySelector("footer");
+
+    if (!footer) {
+        return;
+    }
+
+    const toggleTheme = (isVisible) => {
+        document.body.classList.toggle("footer-theme", isVisible);
+    };
+
+    if ("IntersectionObserver" in window) {
+        const observer = new IntersectionObserver(
+            (entries) => {
+                entries.forEach((entry) => {
+                    toggleTheme(entry.isIntersecting);
+                });
+            }, {
+                threshold: 0.2,
+                rootMargin: "0px 0px -16%"
+            }
+        );
+
+        observer.observe(footer);
+        return;
+    }
+
+    const handleScroll = () => {
+        const rect = footer.getBoundingClientRect();
+        toggleTheme(rect.top < window.innerHeight && rect.bottom > 0);
+    };
+
+    handleScroll();
+    window.addEventListener("scroll", handleScroll, {
+        passive: true
     });
 }
