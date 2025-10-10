@@ -312,6 +312,9 @@ function setupHomeHeaderScroll() {
     }
 
     const prefersReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    const SCROLL_SCRUB = 1.2;
+    const SCROLL_EASE = "power3.out";
+    const MEDIA_ANIMATION_DURATION = 1.15;
     const nav = document.querySelector("nav");
     const pinnedTop = () => {
         const navHeight = nav ? nav.offsetHeight : 0;
@@ -484,7 +487,7 @@ function setupHomeHeaderScroll() {
         setCurrentImage();
 
         const enterOffset = direction === "down" ? -100 : 100;
-        const exitOffset = direction === "down" ? 100 : -100;
+        const exitOffset = direction === "down" ? 80 : -80;
 
         gsap.set(mediaImage, {
             xPercent: enterOffset,
@@ -493,8 +496,8 @@ function setupHomeHeaderScroll() {
 
         imageSwapTween = gsap.timeline({
             defaults: {
-                duration: 0.6,
-                ease: "power3.inOut"
+                duration: 0.85,
+                ease: "power2.out"
             },
             onComplete: () => {
                 if (mediaTransitionImage) {
@@ -597,9 +600,10 @@ function setupHomeHeaderScroll() {
         }
 
         timeline = gsap.timeline({
+            smoothChildTiming: true,
             scrollTrigger: {
                 ...scrollTriggerConfig,
-                scrub: true
+                scrub: SCROLL_SCRUB
             }
         });
 
@@ -611,8 +615,8 @@ function setupHomeHeaderScroll() {
             yPercent: 0,
             paddingLeft: "3%",
             paddingRight: "3%",
-            duration: 1,
-            ease: "power2.inOut",
+            duration: MEDIA_ANIMATION_DURATION,
+            ease: SCROLL_EASE,
             onStart: () => {
                 driver.value = Math.max(0, activeIndex);
                 lastDriverValue = driver.value;
@@ -633,7 +637,7 @@ function setupHomeHeaderScroll() {
                 value: Math.max(0, activeIndex)
             }),
             duration: Math.max(1, projectData.length),
-            ease: "none",
+            ease: "power1.inOut",
             onStart: () => {
                 setExpandedState(true);
                 lastDriverValue = driver.value;
