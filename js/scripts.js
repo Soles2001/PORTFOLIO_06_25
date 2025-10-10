@@ -312,7 +312,7 @@ function setupHomeHeaderScroll() {
     }
 
     const prefersReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-    const SCROLL_SCRUB = 1.2;
+    const SCROLL_SCRUB = 2;
     const SCROLL_EASE = "power3.out";
     const MEDIA_ANIMATION_DURATION = 1.15;
     const nav = document.querySelector("nav");
