@@ -341,9 +341,15 @@ function setupHomeHeaderScroll() {
     const setExpandedState = (expanded) => {
         isMediaExpanded = expanded;
         media.classList.toggle("home_header-media--expanded", expanded);
-        if (!expanded) {
+        if (expanded) {
             gsap.set(media, {
-                padding: 0,
+                paddingLeft: "3%",
+                paddingRight: "3%"
+            });
+        } else {
+            gsap.set(media, {
+                paddingLeft: 0,
+                paddingRight: 0,
                 width: "",
                 height: "",
                 top: "",
@@ -387,7 +393,9 @@ function setupHomeHeaderScroll() {
             height: targetHeight(),
             top: pinnedTop(),
             bottom: "auto",
-            yPercent: 0
+            yPercent: 0,
+            paddingLeft: "3%",
+            paddingRight: "3%"
         });
         setExpandedState(true);
     };
@@ -601,6 +609,8 @@ function setupHomeHeaderScroll() {
             top: () => pinnedTop(),
             bottom: "auto",
             yPercent: 0,
+            paddingLeft: "3%",
+            paddingRight: "3%",
             duration: 1,
             ease: "power2.inOut",
             onStart: () => {
