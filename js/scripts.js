@@ -341,6 +341,16 @@ function setupHomeHeaderScroll() {
     const setExpandedState = (expanded) => {
         isMediaExpanded = expanded;
         media.classList.toggle("home_header-media--expanded", expanded);
+        if (!expanded) {
+            gsap.set(media, {
+                padding: 0,
+                width: "",
+                height: "",
+                top: "",
+                bottom: "",
+                yPercent: 0
+            });
+        }
         updateProjectTitleVisibility();
     };
     let activeIndex = -1;
