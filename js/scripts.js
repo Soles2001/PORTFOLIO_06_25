@@ -312,8 +312,27 @@ function setupHomeHeaderScroll() {
     }
 
     const prefersReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-    const targetHeight = () => window.innerHeight * 0.6;
+    const nav = document.querySelector("nav");
+    const pinnedTop = () => {
+        const navHeight = nav ? nav.offsetHeight : 0;
+        return navHeight + window.innerHeight * 0.01;
+    };
     const targetWidth = () => window.innerWidth;
+    const copyTop = () => {
+        if (!headerCopy.length) {
+            return window.innerHeight - window.innerHeight * 0.05;
+        }
+        return headerCopy.reduce((minTop, copy) => {
+            const rect = copy.getBoundingClientRect();
+            return Math.min(minTop, rect.top);
+        }, Number.POSITIVE_INFINITY);
+    };
+    const targetHeight = () => {
+        const topLimit = pinnedTop();
+        const bottomLimit = copyTop() - window.innerHeight * 0.02;
+        const available = bottomLimit - topLimit;
+        return Math.max(available, 320);
+    };
 
     let timeline = null;
     let pinTrigger = null;
@@ -356,9 +375,9 @@ function setupHomeHeaderScroll() {
         gsap.set(media, {
             width: targetWidth(),
             height: targetHeight(),
-            top: "50%",
+            top: pinnedTop(),
             bottom: "auto",
-            yPercent: -50
+            yPercent: 0
         });
         setExpandedState(true);
     };
@@ -569,9 +588,9 @@ function setupHomeHeaderScroll() {
         timeline.to(media, {
             width: () => targetWidth(),
             height: () => targetHeight(),
-            top: "50%",
+            top: () => pinnedTop(),
             bottom: "auto",
-            yPercent: -50,
+            yPercent: 0,
             duration: 1,
             ease: "power2.inOut",
             onStart: () => {
