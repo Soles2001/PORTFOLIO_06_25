@@ -217,6 +217,7 @@ if (alonsoLogo) {
 }
 
 document.addEventListener("DOMContentLoaded", setupHomeHeaderScroll);
+document.addEventListener("DOMContentLoaded", setupProjectSlider);
 document.addEventListener("DOMContentLoaded", setupFooterThemeToggle);
 
 function setupHomeHeaderScroll() {
@@ -435,6 +436,228 @@ function setupHomeHeaderScroll() {
     window.addEventListener("logo:refresh", refreshScroll);
     window.addEventListener("resize", handleResize);
     window.addEventListener("orientationchange", handleResize);
+}
+
+function setupProjectSlider() {
+    if (!document.body.classList.contains("project-page")) {
+        return;
+    }
+
+    if (typeof gsap === "undefined" || typeof ScrollTrigger === "undefined") {
+        return;
+    }
+
+    if (!gsap.plugins || !gsap.plugins.ScrollTrigger) {
+        gsap.registerPlugin(ScrollTrigger);
+    }
+
+    const cover = document.querySelector(".project-cover");
+    const sliderSection = document.querySelector(".project-slider");
+    const media = sliderSection ? sliderSection.querySelector(".project-slider__media") : null;
+    const track = media ? media.querySelector(".project-slider__track") : null;
+    const cards = track ? gsap.utils.toArray(".project-slider__card") : [];
+
+    if (!cover || !sliderSection || !media || !track || !cards.length) {
+        return;
+    }
+
+    const nav = document.querySelector("nav");
+    const prefersReducedMotion = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+    let timeline = null;
+    let pinTrigger = null;
+    let maxTrackOffset = 0;
+
+    const targetWidth = () => {
+        const viewportWidth = window.innerWidth;
+        const width = viewportWidth * 0.94;
+        return Math.min(Math.max(width, 220), viewportWidth);
+    };
+
+    const computeTopOffset = () => {
+        const navHeight = nav ? nav.offsetHeight : 0;
+        return navHeight + window.innerHeight * 0.03;
+    };
+
+    const computeHeight = () => {
+        const navHeight = nav ? nav.offsetHeight : 0;
+        const viewport = window.innerHeight;
+        const available = viewport - navHeight - viewport * 0.06;
+        return Math.max(available, 320);
+    };
+
+    const setExpandedState = (expanded) => {
+        media.classList.toggle("project-slider__media--expanded", expanded);
+    };
+
+    const resetTrackPosition = () => {
+        gsap.set(track, {
+            x: 0
+        });
+        maxTrackOffset = 0;
+    };
+
+    const clearMediaStyles = () => {
+        gsap.set(media, {
+            width: "",
+            height: "",
+            top: "",
+            bottom: "",
+            yPercent: 0,
+            paddingLeft: "",
+            paddingRight: ""
+        });
+        resetTrackPosition();
+        setExpandedState(false);
+    };
+
+    const applyPinnedState = () => {
+        gsap.set(media, {
+            width: targetWidth(),
+            height: computeHeight(),
+            top: computeTopOffset(),
+            bottom: "auto",
+            yPercent: 0,
+            paddingLeft: "",
+            paddingRight: ""
+        });
+        setExpandedState(true);
+    };
+
+    const computeTrackMetrics = () => {
+        maxTrackOffset = Math.max(0, track.scrollWidth - media.clientWidth);
+        return maxTrackOffset;
+    };
+
+    const getProjectedTravel = () => Math.max(0, track.scrollWidth - targetWidth());
+
+    const getScrollLength = () => {
+        const viewport = window.innerHeight;
+        const travel = getProjectedTravel();
+        return Math.max(viewport * 1.2, travel + viewport * 0.5);
+    };
+
+    const computeStartOffset = () => {
+        const scrollY = window.scrollY || window.pageYOffset || 0;
+        const coverRect = cover.getBoundingClientRect();
+        const sliderRect = sliderSection.getBoundingClientRect();
+        const coverCenterScroll = scrollY + coverRect.top + coverRect.height / 2;
+        const viewportCenter = window.innerHeight / 2;
+        const sliderTopScroll = scrollY + sliderRect.top;
+        return Math.round(coverCenterScroll - viewportCenter - sliderTopScroll);
+    };
+
+    const formatStartOffset = (offset) => {
+        if (Math.abs(offset) < 1) {
+            return "top top";
+        }
+        if (offset > 0) {
+            return "top+=" + offset + " top";
+        }
+        return "top-=" + Math.abs(offset) + " top";
+    };
+
+    const scrollTriggerConfig = {
+        trigger: sliderSection,
+        start: () => formatStartOffset(computeStartOffset()),
+        end: () => "+=" + getScrollLength(),
+        pin: true,
+        anticipatePin: 1,
+        invalidateOnRefresh: true,
+        onRefreshInit: clearMediaStyles,
+        onKill: clearMediaStyles
+    };
+
+    const buildTimeline = () => {
+        if (timeline) {
+            timeline.scrollTrigger.kill();
+            timeline.kill();
+            timeline = null;
+        }
+
+        if (pinTrigger) {
+            pinTrigger.kill();
+            pinTrigger = null;
+        }
+
+        clearMediaStyles();
+
+        if (prefersReducedMotion) {
+            applyPinnedState();
+            computeTrackMetrics();
+            pinTrigger = ScrollTrigger.create({
+                ...scrollTriggerConfig,
+                onRefresh: () => {
+                    applyPinnedState();
+                    computeTrackMetrics();
+                    resetTrackPosition();
+                }
+            });
+            return;
+        }
+
+        timeline = gsap.timeline({
+            smoothChildTiming: true,
+            scrollTrigger: {
+                ...scrollTriggerConfig,
+                scrub: 1.4
+            }
+        });
+
+        timeline.to(media, {
+            width: () => targetWidth(),
+            height: () => computeHeight(),
+            top: () => computeTopOffset(),
+            bottom: "auto",
+            yPercent: 0,
+            paddingLeft: "",
+            paddingRight: "",
+            duration: 1,
+            ease: "power3.out",
+            onStart: () => {
+                resetTrackPosition();
+                setExpandedState(false);
+            },
+            onComplete: () => {
+                setExpandedState(true);
+                computeTrackMetrics();
+            },
+            onReverseComplete: () => {
+                clearMediaStyles();
+            }
+        }).to(track, {
+            x: () => -computeTrackMetrics(),
+            duration: Math.max(1, cards.length - 1),
+            ease: "none",
+            onStart: () => {
+                computeTrackMetrics();
+            }
+        }, ">-0.05");
+    };
+
+    buildTimeline();
+
+    const refreshScroll = () => {
+        if (timeline) {
+            timeline.invalidate();
+            if (timeline.scrollTrigger) {
+                timeline.scrollTrigger.refresh();
+            }
+        } else if (pinTrigger) {
+            pinTrigger.refresh();
+        } else if (ScrollTrigger) {
+            ScrollTrigger.refresh();
+        }
+    };
+
+    const handleResize = () => {
+        buildTimeline();
+        refreshScroll();
+    };
+
+    window.addEventListener("resize", handleResize);
+    window.addEventListener("orientationchange", handleResize);
+    window.addEventListener("logo:refresh", refreshScroll);
 }
 function setupFooterThemeToggle() {
     const footer = document.querySelector("footer");
