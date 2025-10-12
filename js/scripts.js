@@ -2,17 +2,46 @@ window.addEventListener('DOMContentLoaded', () => {
     const body = document.body;
     const homeSection = document.querySelector(".home");
     const introSection = document.querySelector(".intro");
+    const INTRO_SEEN_KEY = "introSeen";
+    let hasSeenIntro = false;
 
-    if (!homeSection || !introSection) {
+    try {
+        hasSeenIntro = sessionStorage.getItem(INTRO_SEEN_KEY) === "true";
+    } catch (error) {
+        hasSeenIntro = false;
+    }
+
+    const markIntroSeen = () => {
+        try {
+            sessionStorage.setItem(INTRO_SEEN_KEY, "true");
+        } catch (error) {}
+    };
+
+    if (!homeSection || !introSection || hasSeenIntro) {
         body.classList.remove("intro-active");
         body.classList.remove("logo-hidden");
         body.classList.add("logo-visible");
         body.style.overflow = "auto";
         body.style.overflowX = "hidden";
 
+        if (homeSection) {
+            homeSection.style.top = "0";
+        }
+
+        if (introSection) {
+            introSection.style.display = "none";
+        }
+
+        const alonsoLogoEl = document.querySelector(".alonso");
+        if (alonsoLogoEl) {
+            alonsoLogoEl.classList.remove("is-hidden");
+        }
+
         window.requestAnimationFrame(() => {
             window.dispatchEvent(new Event("logo:refresh"));
         });
+
+        markIntroSeen();
         return;
     }
 
@@ -43,9 +72,10 @@ window.addEventListener('DOMContentLoaded', () => {
         window.requestAnimationFrame(() => {
             window.dispatchEvent(new Event("logo:refresh"));
         });
+
+        markIntroSeen();
     });
 });
-
 
 let items = gsap.utils.toArray("a"),
     cursor = document.querySelector("#Cursor"),
@@ -347,7 +377,7 @@ function setupHomeHeaderScroll() {
             smoothChildTiming: true,
             scrollTrigger: {
                 ...scrollTriggerConfig,
-                scrub: 1.2
+                scrub: 1.6
             }
         });
 
@@ -375,8 +405,11 @@ function setupHomeHeaderScroll() {
         }).to(track, {
             x: () => -computeTrackMetrics(),
             duration: Math.max(1, cards.length - 1),
-            ease: "none"
-        }, ">");
+            ease: "none",
+            onStart: () => {
+                computeTrackMetrics();
+            }
+        }, ">-0.05");
     };
 
     buildTimeline();
