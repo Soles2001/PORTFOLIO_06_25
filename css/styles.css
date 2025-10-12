@@ -192,6 +192,28 @@ nav > div:last-child > h3 {
   z-index: 1;
 }
 
+.home_header-media-track {
+  display: flex;
+  align-items: stretch;
+  height: 100%;
+  min-width: 100%;
+  transform: translate3d(0, 0, 0);
+  will-change: transform;
+}
+
+.home_header-media-card {
+  position: relative;
+  display: block;
+  flex: 0 0 100%;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+}
+
+.home_header-media-card + .home_header-media-card {
+  margin-left: 3%;
+}
+
 .home_header-media--expanded {
   z-index: 9999991;
 }

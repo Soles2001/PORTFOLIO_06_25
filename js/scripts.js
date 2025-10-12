@@ -200,121 +200,15 @@ function setupHomeHeaderScroll() {
 
     const headerWrapper = document.querySelector(".home_header");
     const media = document.querySelector(".home_header-media");
-    const mediaLink = media ? media.querySelector("a") : null;
-    const mediaImage = mediaLink ? mediaLink.querySelector("img") : null;
     const headerCopy = gsap.utils.toArray(".home_header-copy");
+    const track = media ? media.querySelector(".home_header-media-track") : null;
+    const cards = track ? gsap.utils.toArray(".home_header-media-card") : [];
 
-    if (!headerWrapper || !media || !mediaLink || !mediaImage) {
+    if (!headerWrapper || !media || !track || !cards.length) {
         return;
     }
 
-    mediaLink.classList.add("home_header-media-link");
-    mediaImage.classList.add("home_header-media-image", "home_header-media-image--current");
-
-    let mediaTitleEl = media.querySelector(".home_header-media-title");
-
-    if (!mediaTitleEl) {
-        mediaTitleEl = document.createElement("span");
-        mediaTitleEl.className = "home_header-media-title";
-        mediaTitleEl.setAttribute("aria-hidden", "true");
-        media.appendChild(mediaTitleEl);
-    }
-
-    let mediaTransitionImage = mediaLink.querySelector(".home_header-media-image--transition");
-
-    if (!mediaTransitionImage) {
-        mediaTransitionImage = mediaImage.cloneNode(false);
-        mediaTransitionImage.classList.remove("home_header-media-image--current");
-        mediaTransitionImage.classList.add("home_header-media-image", "home_header-media-image--transition");
-        mediaTransitionImage.setAttribute("aria-hidden", "true");
-        mediaTransitionImage.style.opacity = "0";
-        mediaTransitionImage.style.transform = "translate3d(0, 0, 0)";
-        mediaLink.appendChild(mediaTransitionImage);
-    }
-
-    gsap.set([mediaImage, mediaTransitionImage], {
-        xPercent: 0
-    });
-    gsap.set(mediaTransitionImage, {
-        autoAlpha: 0
-    });
-
-    let pendingProjectTitle = "";
-    const updateProjectTitleVisibility = () => {
-        if (!mediaTitleEl) {
-            return;
-        }
-        if (isMediaExpanded && pendingProjectTitle) {
-            mediaTitleEl.textContent = pendingProjectTitle;
-        } else {
-            mediaTitleEl.textContent = "";
-        }
-    };
-
-    const setProjectTitle = (title) => {
-        pendingProjectTitle = title || "";
-        updateProjectTitleVisibility();
-    };
-
-    const projectData = [
-        {
-            title: "Cofi",
-            href: "cofi.html",
-            image: "media/img/cofi/cofi_individual.webp",
-            alt: "Cofi branding packaging"
-        },
-        {
-            title: "Thompson",
-            href: "thompson.html",
-            image: "media/img/thompson/thompson_mural_comida.webp",
-            alt: "Thompson food mural"
-        },
-        {
-            title: "Madrid Fusión",
-            href: "madrid_fusion.html",
-            image: "media/img/madrid_fusion/madrid_fusion_totebag.webp",
-            alt: "Madrid Fusión tote bag"
-        },
-        {
-            title: "Minority",
-            href: "minority.html",
-            image: "media/img/minority/minority_app_icon.webp",
-            alt: "Minority app icon"
-        },
-        {
-            title: "Valencia Wines",
-            href: "valencia_wines.html",
-            image: "media/img/valencia_wines/valenci_wines_tres.webp",
-            alt: "Valencia Wines bottles"
-        },
-        {
-            title: "Keller",
-            href: "keller.html",
-            image: "media/img/keller/keller_camiseta.webp",
-            alt: "Keller apparel graphic"
-        },
-        {
-            title: "Chupa Chups",
-            href: "chupachups.html",
-            image: "media/img/chupachups/chupachups_lettering.webp",
-            alt: "Chupa Chups lettering"
-        },
-        {
-            title: "ADN Forum",
-            href: "adn_forum.html",
-            image: "media/img/adn/adn_vertical_foto.webp",
-            alt: "ADN Forum poster"
-        }
-    ];
-
-    if (!projectData.length) {
-        return;
-    }
-
-    const prefersReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-    const SCROLL_SCRUB = 1.5;
-    const SCROLL_EASE = "power3.out";
-    const MEDIA_ANIMATION_DURATION = 1.15;
+    const prefersReducedMotion = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
     const nav = document.querySelector("nav");
     const pinnedTop = () => {
         const navHeight = nav ? nav.offsetHeight : 0;
@@ -336,37 +230,27 @@ function setupHomeHeaderScroll() {
         const available = bottomLimit - topLimit;
         return Math.max(available, 320);
     };
+    const getScrollLength = () => {
+        const viewport = window.innerHeight;
+        return Math.max(viewport * 1.6, cards.length * viewport * 0.9);
+    };
 
     let timeline = null;
     let pinTrigger = null;
-    let imageSwapTween = null;
     let isMediaExpanded = false;
+    let maxTrackOffset = 0;
+
     const setExpandedState = (expanded) => {
         isMediaExpanded = expanded;
         media.classList.toggle("home_header-media--expanded", expanded);
-        if (expanded) {
-            gsap.set(media, {
-                paddingLeft: "3%",
-                paddingRight: "3%"
-            });
-        } else {
-            gsap.set(media, {
-                paddingLeft: 0,
-                paddingRight: 0,
-                width: "",
-                height: "",
-                top: "",
-                bottom: "",
-                yPercent: 0
-            });
-        }
-        updateProjectTitleVisibility();
     };
-    let activeIndex = -1;
-    const driver = {
-        value: 0
+
+    const resetTrackPosition = () => {
+        gsap.set(track, {
+            x: 0
+        });
+        maxTrackOffset = 0;
     };
-    let lastDriverValue = driver.value;
 
     const clearMediaStyles = () => {
         gsap.set(media, {
@@ -374,20 +258,12 @@ function setupHomeHeaderScroll() {
             height: "",
             top: "",
             bottom: "",
-            yPercent: 0
+            yPercent: 0,
+            paddingLeft: "",
+            paddingRight: ""
         });
-        gsap.set(mediaImage, {
-            xPercent: 0
-        });
-        if (mediaTransitionImage) {
-            gsap.set(mediaTransitionImage, {
-                xPercent: 0,
-                autoAlpha: 0
-            });
-        }
+        resetTrackPosition();
         setExpandedState(false);
-        driver.value = Math.max(0, activeIndex);
-        lastDriverValue = driver.value;
     };
 
     const applyPinnedState = () => {
@@ -413,140 +289,24 @@ function setupHomeHeaderScroll() {
         });
     };
 
-    const applyProject = (index, options = {}) => {
-        if (index < 0 || index >= projectData.length || index === activeIndex) {
-            return;
-        }
-
-        const previousIndex = activeIndex;
-        const project = projectData[index];
-        const immediate = Boolean(options.immediate) || !project.image;
-        const requestedDirection = options.direction;
-        const direction = requestedDirection === "up" || requestedDirection === "down"
-            ? requestedDirection
-            : previousIndex === -1 || index >= previousIndex
-                ? "down"
-                : "up";
-
-        activeIndex = index;
-        setProjectTitle(project.title);
-
-        if (project.href) {
-            mediaLink.setAttribute("href", project.href);
-        }
-
-        const setCurrentImage = () => {
-            if (project.image) {
-                mediaImage.setAttribute("src", project.image);
-            } else {
-                mediaImage.removeAttribute("src");
-            }
-            mediaImage.setAttribute("alt", project.alt || "");
-        };
-
-        if (immediate) {
-            setCurrentImage();
-            gsap.set(mediaImage, {
-                xPercent: 0,
-                autoAlpha: 1
-            });
-            if (mediaTransitionImage) {
-                gsap.set(mediaTransitionImage, {
-                    xPercent: 0,
-                    autoAlpha: 0
-                });
-            }
-            imageSwapTween = null;
-            return;
-        }
-
-        if (imageSwapTween) {
-            imageSwapTween.kill();
-            imageSwapTween = null;
-        }
-
-        if (mediaTransitionImage) {
-            const currentSrc = mediaImage.getAttribute("src");
-            const currentAlt = mediaImage.getAttribute("alt") || "";
-            if (currentSrc) {
-                mediaTransitionImage.setAttribute("src", currentSrc);
-                mediaTransitionImage.setAttribute("alt", currentAlt);
-                gsap.set(mediaTransitionImage, {
-                    xPercent: 0,
-                    autoAlpha: 1
-                });
-            } else {
-                mediaTransitionImage.removeAttribute("src");
-                mediaTransitionImage.setAttribute("alt", "");
-                gsap.set(mediaTransitionImage, {
-                    autoAlpha: 0
-                });
-            }
-        }
-
-        setCurrentImage();
-
-        const enterOffset = direction === "down" ? -100 : 100;
-        const exitOffset = direction === "down" ? 80 : -80;
-
-        gsap.set(mediaImage, {
-            xPercent: enterOffset,
-            autoAlpha: 1
-        });
-
-        imageSwapTween = gsap.timeline({
-            defaults: {
-                duration: 0.85,
-                ease: "power2.out"
-            },
-            onComplete: () => {
-                if (mediaTransitionImage) {
-                    gsap.set(mediaTransitionImage, {
-                        autoAlpha: 0,
-                        xPercent: 0
-                    });
-                }
-            }
-        });
-
-        if (mediaTransitionImage) {
-            imageSwapTween.to(mediaTransitionImage, {
-                xPercent: exitOffset
-            }, 0);
-        }
-
-        imageSwapTween.to(mediaImage, {
-            xPercent: 0
-        }, 0);
+    const computeTrackMetrics = () => {
+        const availableWidth = media.clientWidth;
+        const totalWidth = track.scrollWidth;
+        maxTrackOffset = Math.max(0, totalWidth - availableWidth);
+        return maxTrackOffset;
     };
 
-    applyProject(0, {
-        immediate: true
-    });
-
-    const advanceProject = (direction = "down") => {
-        if (!projectData.length) {
-            return;
-        }
-
-        const nextIndex = (activeIndex + 1) % projectData.length;
-        applyProject(nextIndex, {
-            direction
-        });
-
-        if (
-            !timeline ||
-            !timeline.scrollTrigger ||
-            !timeline.scrollTrigger.isActive()
-        ) {
-            driver.value = nextIndex;
-            lastDriverValue = driver.value;
-        }
-    };
-
-    const getScrollLength = () => {
-        const viewport = window.innerHeight;
-        return Math.max(viewport * 1.6, projectData.length * viewport * 0.9);
+    const scrollTriggerConfig = {
+        trigger: headerWrapper,
+        start: "top top",
+        end: () => "+=" + getScrollLength(),
+        pin: true,
+        anticipatePin: 1,
+        invalidateOnRefresh: true,
+        onRefreshInit: clearMediaStyles,
+        onKill: clearMediaStyles,
+        onLeave: () => toggleCopyRelease(true),
+        onEnterBack: () => toggleCopyRelease(false)
     };
 
     const buildTimeline = () => {
@@ -562,32 +322,16 @@ function setupHomeHeaderScroll() {
         }
 
         clearMediaStyles();
-        driver.value = 0;
-        lastDriverValue = driver.value;
-        gsap.killTweensOf(driver);
-
-        const scrollTriggerConfig = {
-            trigger: headerWrapper,
-            start: "top top",
-            end: () => "+=" + getScrollLength(),
-            pin: true,
-            anticipatePin: 1,
-            invalidateOnRefresh: true,
-            onRefreshInit: clearMediaStyles,
-            onKill: clearMediaStyles,
-            onLeave: () => toggleCopyRelease(true),
-            onEnterBack: () => toggleCopyRelease(false)
-        };
 
         if (prefersReducedMotion) {
             applyPinnedState();
+            computeTrackMetrics();
             pinTrigger = ScrollTrigger.create({
                 ...scrollTriggerConfig,
                 onRefresh: () => {
                     applyPinnedState();
-                    applyProject(0, {
-                        immediate: true
-                    });
+                    computeTrackMetrics();
+                    resetTrackPosition();
                 }
             });
             return;
@@ -603,7 +347,7 @@ function setupHomeHeaderScroll() {
             smoothChildTiming: true,
             scrollTrigger: {
                 ...scrollTriggerConfig,
-                scrub: SCROLL_SCRUB
+                scrub: 1.2
             }
         });
 
@@ -615,96 +359,27 @@ function setupHomeHeaderScroll() {
             yPercent: 0,
             paddingLeft: "3%",
             paddingRight: "3%",
-            duration: MEDIA_ANIMATION_DURATION,
-            ease: SCROLL_EASE,
+            duration: 1.15,
+            ease: "power3.out",
             onStart: () => {
-                driver.value = Math.max(0, activeIndex);
-                lastDriverValue = driver.value;
+                resetTrackPosition();
+                setExpandedState(false);
             },
             onComplete: () => {
                 setExpandedState(true);
+                computeTrackMetrics();
             },
             onReverseComplete: () => {
-                setExpandedState(false);
-                driver.value = Math.max(0, activeIndex);
-                lastDriverValue = driver.value;
+                clearMediaStyles();
             }
-        });
-
-        timeline.to(driver, {
-            value: projectData.length - 1 + 0.999,
-            startAt: () => ({
-                value: Math.max(0, activeIndex)
-            }),
-            duration: Math.max(1, projectData.length),
-            ease: "power1.inOut",
-            onStart: () => {
-                setExpandedState(true);
-                lastDriverValue = driver.value;
-            },
-            onUpdate: () => {
-                if (!isMediaExpanded) {
-                    return;
-                }
-
-                const rawValue = driver.value;
-                const nextIndex = Math.min(projectData.length - 1, Math.floor(rawValue));
-                const direction = rawValue >= lastDriverValue ? "down" : "up";
-
-                if (nextIndex !== activeIndex) {
-                    applyProject(nextIndex, {
-                        direction
-                    });
-                }
-
-                lastDriverValue = rawValue;
-            }
-        });
+        }).to(track, {
+            x: () => -computeTrackMetrics(),
+            duration: Math.max(1, cards.length - 1),
+            ease: "none"
+        }, ">");
     };
 
     buildTimeline();
-
-    const inactivityDelay = 5000;
-    let inactivityTimer = null;
-    let lastInteractionTime = Date.now();
-
-    const scheduleInactivityAdvance = () => {
-        window.clearTimeout(inactivityTimer);
-        inactivityTimer = window.setTimeout(() => {
-            const now = Date.now();
-            if (now - lastInteractionTime < inactivityDelay) {
-                scheduleInactivityAdvance();
-                return;
-            }
-
-            if (isMediaExpanded) {
-                lastInteractionTime = now;
-                scheduleInactivityAdvance();
-                return;
-            }
-
-            advanceProject("down");
-            lastInteractionTime = now;
-            scheduleInactivityAdvance();
-        }, inactivityDelay);
-    };
-
-    const registerInteraction = () => {
-        lastInteractionTime = Date.now();
-        scheduleInactivityAdvance();
-    };
-
-    window.addEventListener("scroll", registerInteraction, {
-        passive: true
-    });
-    window.addEventListener("wheel", registerInteraction, {
-        passive: true
-    });
-    window.addEventListener("touchmove", registerInteraction, {
-        passive: true
-    });
-
-    scheduleInactivityAdvance();
 
     const refreshScroll = () => {
         if (timeline) {
@@ -722,16 +397,12 @@ function setupHomeHeaderScroll() {
     const handleResize = () => {
         buildTimeline();
         refreshScroll();
-        if (typeof ScrollTrigger !== "undefined") {
-            ScrollTrigger.refresh();
-        }
     };
 
     window.addEventListener("logo:refresh", refreshScroll);
     window.addEventListener("resize", handleResize);
     window.addEventListener("orientationchange", handleResize);
 }
-
 function setupFooterThemeToggle() {
     const footer = document.querySelector("footer");
 
@@ -769,3 +440,4 @@ function setupFooterThemeToggle() {
         passive: true
     });
 }
+
