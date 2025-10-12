@@ -1,4 +1,4 @@
-* {
+﻿* {
   margin: 0;
   padding: 0;
   box-sizing: border-box;
@@ -302,6 +302,8 @@ footer {
   min-height: 100vh;
 }
 
+
+
 .footer-content {
   display: flex;
   flex-direction: column;
@@ -505,5 +507,100 @@ body.project-page {
 
   .project-meta span {
     white-space: normal;
+  }
+}
+
+.footer-about {
+  display: grid;
+  gap: clamp(48px, 8vw, 96px);
+  padding-top: clamp(60px, 12vh, 160px);
+}
+
+.footer-about__experience {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: clamp(28px, 4vw, 40px);
+  grid-auto-rows: 1fr;
+}
+
+.footer-about__details {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: clamp(24px, 4vw, 32px);
+}
+
+.footer-about__item {
+  display: grid;
+  align-content: start;
+  gap: clamp(10px, 1.8vw, 18px);
+  font-family: "Instrument Sans", sans-serif;
+  font-size: clamp(14px, 1.3vw, 18px);
+  line-height: 1.6;
+}
+
+.footer-about__experience .footer-about__item {
+  grid-template-rows: minmax(calc(1.2em * 2), auto) minmax(1.2em, auto) 1fr;
+}
+
+.footer-about__item h2 {
+  margin: 0;
+  font-family: "Instrument Sans", sans-serif;
+  font-size: clamp(18px, 1.6vw, 22px);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  line-height: 1.2;
+}
+
+.footer-about__item span,
+.footer-about__meta {
+  margin: 0;
+  font-size: clamp(11px, 1vw, 14px);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  opacity: 0.7;
+}
+
+.footer-about__item p,
+.footer-about__item ul {
+  margin: 0;
+}
+
+.footer-about__experience .footer-about__item span {
+  align-self: start;
+}
+
+.footer-about__experience .footer-about__item p,
+.footer-about__experience .footer-about__item ul {
+  align-self: start;
+  margin-top: clamp(12px, 2vw, 18px);
+}
+
+.footer-about__item ul {
+  display: grid;
+  gap: clamp(6px, 1.2vw, 12px);
+  list-style: none;
+  padding: 0;
+}
+
+.footer-about__item a {
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 4px;
+}
+
+@media (max-width: 1100px) {
+  .footer-about__experience {
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    grid-auto-rows: auto;
+  }
+
+  .footer-about__details {
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  }
+}
+
+@media (max-width: 700px) {
+  .footer-about__experience {
+    grid-auto-rows: auto;
   }
 }
