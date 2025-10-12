@@ -663,3 +663,23 @@ body.project-page {
     grid-auto-rows: auto;
   }
 }
+
+@media (max-width: 900px) {
+  .home_header-media {
+    top: 50% !important;
+    bottom: auto !important;
+    transform: translate3d(-50%, -50%, 0) !important;
+    width: min(88vw, 420px);
+    padding-left: 0;
+    padding-right: 0;
+  }
+    .project-hero {
+    position: static !important;
+    top: auto !important;
+  }
+
+.project{
+  padding-top: 20vh;
+}
+}
+

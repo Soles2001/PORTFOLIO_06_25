@@ -241,10 +241,18 @@ function setupHomeHeaderScroll() {
 
     const prefersReducedMotion = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
     const nav = document.querySelector("nav");
+
     const pinnedTop = () => {
+        const isMobile = (window.matchMedia && window.matchMedia("(max-width: 900px)").matches) ||
+            (window.ScrollTrigger && ScrollTrigger.isTouch);
+        if (isMobile) {
+            const bottomLimit = copyTop() - window.innerHeight * 0.02;
+            return Math.max(window.innerHeight - bottomLimit, 0);
+        }
         const navHeight = nav ? nav.offsetHeight : 0;
         return navHeight + window.innerHeight * 0.01;
     };
+
     const targetWidth = () => window.innerWidth;
     const copyTop = () => {
         if (!headerCopy.length) {
@@ -289,9 +297,9 @@ function setupHomeHeaderScroll() {
             height: "",
             top: "",
             bottom: "",
-            yPercent: 0,
             paddingLeft: "",
-            paddingRight: ""
+            paddingRight: "",
+            clearProps: "transform" // ← elimina transform inline para que gobierne el CSS
         });
         resetTrackPosition();
         setExpandedState(false);
@@ -659,6 +667,7 @@ function setupProjectSlider() {
     window.addEventListener("orientationchange", handleResize);
     window.addEventListener("logo:refresh", refreshScroll);
 }
+
 function setupFooterThemeToggle() {
     const footer = document.querySelector("footer");
 
@@ -696,4 +705,3 @@ function setupFooterThemeToggle() {
         passive: true
     });
 }
-
