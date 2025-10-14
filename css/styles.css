@@ -399,7 +399,7 @@ body.project-page {
   flex-direction: column;
 }
 
-.project-cover:first-of-type{
+.project-cover:first-of-type {
   margin-top: 3%;
 }
 
@@ -430,6 +430,7 @@ body.project-page {
   letter-spacing: 0.14em;
   text-transform: uppercase;
   color: inherit;
+  padding-top: 3%;
 }
 
 .project-hero h1 {
@@ -575,7 +576,7 @@ body.project-page {
 .footer-about {
   display: grid;
   gap: clamp(48px, 8vw, 96px);
-  padding-top: clamp(60px, 12vh, 160px);
+  padding-top: 6%;
 }
 
 .footer-about__experience {
@@ -589,6 +590,7 @@ body.project-page {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: clamp(24px, 4vw, 32px);
+  padding-top: 8%;
 }
 
 .footer-about__item {
@@ -685,6 +687,10 @@ body.project-page {
   .project {
     padding-top: 20vh;
   }
+
+  .footer-about__details{
+     grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
 }
 
 .footer-about__item>ul>li {
@@ -703,8 +709,8 @@ body.project-page {
   text-transform: uppercase;
 }
 
-.footer-about__item>p{
-    font-family: "Instrument Sans", sans-serif;
+.footer-about__item>p {
+  font-family: "Instrument Sans", sans-serif;
   font-weight: 400;
   font-style: normal;
   font-size: 15px;
@@ -714,63 +720,91 @@ body.project-page {
 
 
 @media (max-width: 768px) {
-  h3{
+  h3 {
     font-size: 11px;
   }
-  .footer-about__item{
+
+  .footer-about__item {
     padding-top: 8%;
+  }
+
+}
+
+@media (max-width: 500px) {
+  .footer-about__details{
+     grid-template-columns: repeat(1, minmax(0, 1fr));
+  }
+
+}
+
+.h3-crossfade {
+  position: relative;
+}
+
+.h3-crossfade .layer {
+  transition: opacity 200ms ease;
+  will-change: opacity;
+}
+
+.h3-crossfade .layer.back {
+  position: absolute;
+  inset: 0;
+  /* ocupa todo el h3 */
+  pointer-events: none;
+  white-space: inherit;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .h3-crossfade .layer {
+    transition: none;
   }
 }
 
-.h3-crossfade { position: relative; }
-  .h3-crossfade .layer {
-    transition: opacity 200ms ease;
-    will-change: opacity;
-  }
-  .h3-crossfade .layer.back {
-    position: absolute;
-    inset: 0;          /* ocupa todo el h3 */
-    pointer-events: none;
-    white-space: inherit;
-  }
-  @media (prefers-reduced-motion: reduce) {
-    .h3-crossfade .layer { transition: none; }
-  }
 
 
 
+.home_header-copy {
+  text-wrap: pretty;
+  text-wrap: balance;
+  hyphens: auto;
+}
 
-    .home_header-copy{
-    text-wrap: pretty;
-    text-wrap: balance;
-    hyphens: auto;
-  }
-  /* Asegura herencia tipográfica del contenedor (h1–h6, p, etc.) */
-  .home_header-copy .no-widow{
-    white-space: nowrap;
-    font: inherit;
-    letter-spacing: inherit;
-    text-transform: inherit;
-    font-feature-settings: inherit;
-    font-variation-settings: inherit;
-    word-spacing: inherit;
-    line-height: inherit;
-  }
+/* Asegura herencia tipográfica del contenedor (h1–h6, p, etc.) */
+.home_header-copy .no-widow {
+  white-space: nowrap;
+  font: inherit;
+  letter-spacing: inherit;
+  text-transform: inherit;
+  font-feature-settings: inherit;
+  font-variation-settings: inherit;
+  word-spacing: inherit;
+  line-height: inherit;
+}
 
 
 
-  /* NAV con blend invertido */
+/* NAV con blend invertido */
 nav {
   mix-blend-mode: difference;
-  color: #fff;              /* blanco + difference = invierte el fondo */
-  background: transparent;  /* importante: sin fondo sólido */
-  z-index: 1000;            /* que quede por encima de la imagen/hero */
+  color: #fff;
+  /* blanco + difference = invierte el fondo */
+  background: transparent;
+  /* importante: sin fondo sólido */
+  z-index: 1000;
+  /* que quede por encima de la imagen/hero */
 }
 
 /* Asegura que el color se herede */
-nav a, nav h1, nav h2, nav h3, nav p, nav span, nav svg {
+nav a,
+nav h1,
+nav h2,
+nav h3,
+nav p,
+nav span,
+nav svg {
   color: inherit;
-  fill: currentColor; /* para iconos SVG */
+  fill: currentColor;
+  /* para iconos SVG */
   background: transparent;
 }
 
