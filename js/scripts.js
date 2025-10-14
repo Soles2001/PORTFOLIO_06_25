@@ -1179,3 +1179,107 @@ document.addEventListener('DOMContentLoaded', () => {
     el.style.fontSize = best + 'px';
   }
 });
+
+document.addEventListener('DOMContentLoaded', () => {
+  const root = document.querySelector('.home_header-copy');
+  if (!root) return;
+
+  const blocks = collectTextBlocks(root);
+  blocks.forEach(b => preventWidow(b, 2));
+});
+
+/* ——— Helpers ——— */
+function collectTextBlocks(root){
+  const selectors = 'p,h1,h2,h3,h4,h5,h6,li,blockquote';
+  const inner = Array.from(root.querySelectorAll(selectors));
+  const includeRoot = root.matches(selectors) ? [root] : [];
+  const candidates = includeRoot.concat(inner);
+  return candidates.length ? candidates : [root];
+}
+
+function preventWidow(el, keepWords = 2){
+  if (el.querySelector('.no-widow')) return;
+  const text = el.textContent || '';
+  if (text.trim().split(/\s+/).length <= keepWords) return;
+
+  try {
+    wrapLastWords(el, keepWords);
+  } catch {
+    const lastText = getLastTextNode(el);
+    if (lastText){
+      lastText.nodeValue = lastText.nodeValue.replace(/\s+(\S+)\s*$/, '\u00A0$1');
+    }
+  }
+}
+
+function wrapLastWords(el, keepWords){
+  const nodes = getTextNodes(el);
+  if (!nodes.length) return;
+
+  // Fin (último carácter no blanco)
+  let endNode=null, endOffset=0;
+  for (let i = nodes.length - 1; i >= 0; i--){
+    const t = nodes[i].nodeValue, m = t.match(/\S(?=[\s]*$)/);
+    if (m){ endNode = nodes[i]; endOffset = t.lastIndexOf(m[0]) + 1; break; }
+  }
+  if (!endNode) return;
+
+  // Inicio (comienzo de la palabra N desde el final)
+  let wordsSeen=0, inWord=false, startNode=null, startOffset=0;
+  outer: for (let i = nodes.length - 1; i >= 0; i--){
+    const t = nodes[i].nodeValue;
+    for (let j = (nodes[i] === endNode ? endOffset - 1 : t.length - 1); j >= 0; j--){
+      const ch = t[j];
+      if (/\S/.test(ch)){
+        if (!inWord){
+          inWord = true; wordsSeen++;
+          if (wordsSeen === keepWords){
+            let k = j; while (k >= 0 && /\S/.test(t[k])) k--;
+            startNode = nodes[i]; startOffset = k + 1;
+            break outer;
+          }
+        }
+      } else { inWord = false; }
+    }
+  }
+  if (!startNode) return;
+
+  const range = document.createRange();
+  range.setStart(startNode, startOffset);
+  range.setEnd(endNode, endOffset);
+
+  const span = document.createElement('span');
+  span.className = 'no-widow';
+  span.style.whiteSpace = 'nowrap';
+  copyTypography(el, span);          // 👈 Copia tipografía exacta del contenedor
+  range.surroundContents(span);
+}
+
+function copyTypography(fromEl, toEl){
+  const cs = getComputedStyle(fromEl);
+  toEl.style.font                 = cs.font;
+  toEl.style.letterSpacing        = cs.letterSpacing;
+  toEl.style.textTransform        = cs.textTransform;
+  toEl.style.wordSpacing          = cs.wordSpacing;
+  toEl.style.fontFeatureSettings  = cs.fontFeatureSettings;
+  toEl.style.fontVariationSettings= cs.fontVariationSettings;
+  toEl.style.lineHeight           = cs.lineHeight;
+  toEl.style.fontKerning          = cs.fontKerning;
+  toEl.style.fontStretch          = cs.fontStretch;
+  toEl.style.fontVariantCaps      = cs.fontVariantCaps;
+  toEl.style.fontVariantLigatures = cs.fontVariantLigatures;
+}
+
+function getTextNodes(el){
+  const tw = document.createTreeWalker(el, NodeFilter.SHOW_TEXT, {
+    acceptNode: n => /\S/.test(n.nodeValue) ? NodeFilter.FILTER_ACCEPT : NodeFilter.FILTER_REJECT
+  });
+  const nodes = [];
+  while (tw.nextNode()) nodes.push(tw.currentNode);
+  return nodes;
+}
+
+function getLastTextNode(el){
+  const nodes = getTextNodes(el);
+  return nodes[nodes.length - 1] || null;
+}

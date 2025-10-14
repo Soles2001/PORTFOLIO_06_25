@@ -736,3 +736,45 @@ body.project-page {
   @media (prefers-reduced-motion: reduce) {
     .h3-crossfade .layer { transition: none; }
   }
+
+
+
+
+    .home_header-copy{
+    text-wrap: pretty;
+    text-wrap: balance;
+    hyphens: auto;
+  }
+  /* Asegura herencia tipográfica del contenedor (h1–h6, p, etc.) */
+  .home_header-copy .no-widow{
+    white-space: nowrap;
+    font: inherit;
+    letter-spacing: inherit;
+    text-transform: inherit;
+    font-feature-settings: inherit;
+    font-variation-settings: inherit;
+    word-spacing: inherit;
+    line-height: inherit;
+  }
+
+
+
+  /* NAV con blend invertido */
+nav {
+  mix-blend-mode: difference;
+  color: #fff;              /* blanco + difference = invierte el fondo */
+  background: transparent;  /* importante: sin fondo sólido */
+  z-index: 1000;            /* que quede por encima de la imagen/hero */
+}
+
+/* Asegura que el color se herede */
+nav a, nav h1, nav h2, nav h3, nav p, nav span, nav svg {
+  color: inherit;
+  fill: currentColor; /* para iconos SVG */
+  background: transparent;
+}
+
+/* Si algún hijo tenía fondo, lo anulamos */
+nav * {
+  background: transparent;
+}
