@@ -397,7 +397,10 @@ body.project-page {
   padding: max(45vh, var(--logo-nav-offset, 120px)) 3% clamp(80px, 16vh, 160px);
   display: flex;
   flex-direction: column;
-  gap: clamp(32px, 6vw, 64px);
+}
+
+.project-cover:first-of-type{
+  margin-top: 3%;
 }
 
 .project-hero {
@@ -709,3 +712,27 @@ body.project-page {
 }
 
 
+
+@media (max-width: 768px) {
+  h3{
+    font-size: 11px;
+  }
+  .footer-about__item{
+    padding-top: 8%;
+  }
+}
+
+.h3-crossfade { position: relative; }
+  .h3-crossfade .layer {
+    transition: opacity 200ms ease;
+    will-change: opacity;
+  }
+  .h3-crossfade .layer.back {
+    position: absolute;
+    inset: 0;          /* ocupa todo el h3 */
+    pointer-events: none;
+    white-space: inherit;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .h3-crossfade .layer { transition: none; }
+  }

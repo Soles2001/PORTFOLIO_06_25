@@ -705,3 +705,477 @@ function setupFooterThemeToggle() {
         passive: true
     });
 }
+
+document.addEventListener('DOMContentLoaded', () => {
+  const nav = document.querySelector('nav');
+  if (!nav) return;
+
+  // 1) Primer h3 del nav
+  const firstH3 = nav.querySelector('h3');
+
+  // 2) Último div que contenga un h3 (buscando desde el final)
+  const divs = Array.from(nav.querySelectorAll('div'));
+  let lastH3 = null;
+  for (let i = divs.length - 1; i >= 0; i--) {
+    const h3 = divs[i].querySelector('h3');
+    if (h3) { lastH3 = h3; break; }
+  }
+
+  // 3) Todos los <a> dentro del nav
+  const anchors = Array.from(nav.querySelectorAll('a'));
+
+  // Guardar textos/estilos originales para restaurar
+  if (firstH3 && !firstH3.dataset.originalText) {
+    firstH3.dataset.originalText = firstH3.textContent.trim();
+  }
+  if (lastH3 && !lastH3.dataset.originalText) {
+    lastH3.dataset.originalText = lastH3.textContent.trim();
+  }
+  anchors.forEach(a => {
+    if (!a.dataset.originalTextDecoration) {
+      a.dataset.originalTextDecoration = a.style.textDecoration || '';
+    }
+  });
+
+  const mql = window.matchMedia('(max-width: 900px)');
+  const sameTarget = firstH3 && lastH3 && firstH3 === lastH3;
+
+  const apply = () => {
+    if (mql.matches) {
+      // ≤ 900px
+      if (firstH3 && firstH3.textContent.trim() !== 'Madrid -') {
+        firstH3.textContent = 'Madrid';
+        firstH3.setAttribute('aria-label', 'Madrid');
+      }
+      // Si por casualidad el primer y el último h3 son el mismo elemento, priorizamos "Madrid -"
+      if (lastH3 && !sameTarget && lastH3.textContent.trim() !== 'art director') {
+        lastH3.textContent = 'art director';
+        lastH3.setAttribute('aria-label', 'art director');
+      }
+      anchors.forEach(a => { a.style.textDecoration = 'underline'; });
+    } else {
+      // > 900px: restaurar
+      if (firstH3 && firstH3.dataset.originalText) {
+        firstH3.textContent = firstH3.dataset.originalText;
+        firstH3.setAttribute('aria-label', firstH3.dataset.originalText);
+      }
+      if (lastH3 && lastH3.dataset.originalText) {
+        lastH3.textContent = lastH3.dataset.originalText;
+        lastH3.setAttribute('aria-label', lastH3.dataset.originalText);
+      }
+      anchors.forEach(a => {
+        a.style.textDecoration = a.dataset.originalTextDecoration || '';
+      });
+    }
+  };
+
+  // Inicial y en cambios de tamaño
+  apply();
+  if (mql.addEventListener) {
+    mql.addEventListener('change', apply);
+  } else {
+    mql.addListener(apply); // Safari antiguo
+  }
+});
+
+document.addEventListener('DOMContentLoaded', () => {
+  const nav = document.querySelector('nav');
+  if (!nav) return;
+
+  // --- Targets ---
+  const firstH3 = nav.querySelector('h3');
+  const divs = Array.from(nav.querySelectorAll('div'));
+  let lastH3 = null;
+  for (let i = divs.length - 1; i >= 0; i--) {
+    const h3 = divs[i].querySelector('h3');
+    if (h3) { lastH3 = h3; break; }
+  }
+  const anchors = Array.from(nav.querySelectorAll('a'));
+  const alonsoEl = document.querySelector('.alonso');
+  const pair = [firstH3, lastH3].filter(Boolean);
+
+  // Estado original para restaurar ciertos estilos/textos
+  if (lastH3 && !lastH3.dataset.originalText) {
+    lastH3.dataset.originalText = lastH3.textContent.trim();
+  }
+  anchors.forEach(a => {
+    if (!a.dataset.originalTextDecoration) {
+      a.dataset.originalTextDecoration = a.style.textDecoration || '';
+    }
+  });
+  pair.forEach(h => {
+    if (!h) return;
+    const cs = getComputedStyle(h);
+    if (!h.dataset.originalFontSize) h.dataset.originalFontSize = cs.fontSize;
+  });
+
+  const mql = window.matchMedia('(max-width: 900px)');
+  let alonsoVisible = true; // asumimos visible hasta medir
+  let ro = null;
+  let rafId = null;
+
+  // --- Core ---
+  function desiredFirstH3Text(isVisible){
+    if (mql.matches) {
+      // ≤ 900px
+      return isVisible ? 'madrid' : 'alonso santamaría';
+    }
+    // > 900px
+    return isVisible ? 'based in madrid' : 'alonso santamaría';
+  }
+
+  function apply(){
+    // 1) Primer h3: según visibilidad de .alonso + breakpoint
+    if (firstH3) {
+      const next = desiredFirstH3Text(alonsoVisible);
+      if (firstH3.textContent.trim() !== next) {
+        firstH3.textContent = next;
+        firstH3.setAttribute('aria-label', next);
+      }
+    }
+
+    // 2) Último h3 del último div: solo ≤ 900px -> "art director", >900px restaura
+    if (lastH3 && (!firstH3 || firstH3 !== lastH3)) {
+      if (mql.matches) {
+        if (lastH3.textContent.trim() !== 'art director') {
+          lastH3.textContent = 'art director';
+          lastH3.setAttribute('aria-label', 'art director');
+        }
+      } else if (lastH3.dataset.originalText && lastH3.textContent.trim() !== lastH3.dataset.originalText) {
+        lastH3.textContent = lastH3.dataset.originalText;
+        lastH3.setAttribute('aria-label', lastH3.dataset.originalText);
+      }
+    }
+
+    // 3) Subrayado de anchors en ≤ 900px
+    anchors.forEach(a => {
+      a.style.textDecoration = mql.matches ? 'underline' : (a.dataset.originalTextDecoration || '');
+    });
+
+    // 4) Igualar líneas de ambos h3 en ≤ 900px
+    if (mql.matches) {
+      equalizeLinesMin(pair);
+      if (!ro) {
+        ro = new ResizeObserver(() => {
+          if (rafId) cancelAnimationFrame(rafId);
+          rafId = requestAnimationFrame(() => equalizeLinesMin(pair));
+        });
+        ro.observe(document.documentElement);
+      }
+    } else {
+      // Restablece font-size si se tocó
+      pair.forEach(h => { if (h) h.style.fontSize = h.dataset.originalFontSize || ''; });
+      if (ro) { ro.disconnect(); ro = null; }
+    }
+  }
+
+  // --- Observers & eventos ---
+  // Visibilidad inicial de .alonso
+  alonsoVisible = isInViewport(alonsoEl);
+  apply();
+
+  // IntersectionObserver para .alonso
+  if (alonsoEl) {
+    const io = new IntersectionObserver((entries) => {
+      const e = entries[0];
+      alonsoVisible = !!(e && e.isIntersecting);
+      // re-aplica en el siguiente frame para evitar parpadeos
+      if (rafId) cancelAnimationFrame(rafId);
+      rafId = requestAnimationFrame(apply);
+    }, { threshold: 0.01 });
+    io.observe(alonsoEl);
+  }
+
+  // Cambios de breakpoint
+  if (mql.addEventListener) mql.addEventListener('change', apply);
+  else mql.addListener(apply); // Safari antiguo
+
+  // --- Utils ---
+  function isInViewport(el){
+    if (!el) return true; // si no existe, tratamos como visible
+    const r = el.getBoundingClientRect();
+    return r.bottom > 0 && r.top < (window.innerHeight || document.documentElement.clientHeight);
+  }
+
+  function equalizeLinesMin(nodes){
+    const hs = nodes.filter(Boolean);
+    if (hs.length < 2) return;
+
+    // Solo modificamos el font-size en ≤ 900px
+    hs.forEach(h => { h.style.fontSize = h.dataset.originalFontSize || ''; });
+
+    const lines = hs.map(countLines);
+    const target = Math.min(...lines);
+    hs.forEach((h, i) => { if (lines[i] > target) fitToLines(h, target); });
+
+    // Segundo pase suave si aún difiere
+    const lines2 = hs.map(countLines);
+    const minAfter = Math.min(...lines2), maxAfter = Math.max(...lines2);
+    if (minAfter !== maxAfter) {
+      hs.forEach((h, i) => { if (lines2[i] > minAfter) fitToLines(h, minAfter); });
+    }
+  }
+
+  function countLines(el){
+    const cs = getComputedStyle(el);
+    const h = el.getBoundingClientRect().height;
+    let lh = parseFloat(cs.lineHeight);
+    if (isNaN(lh) || lh <= 0) {
+      const fs = parseFloat(cs.fontSize) || 16;
+      lh = fs * 1.2; // fallback
+    }
+    return Math.max(1, Math.round(h / lh));
+  }
+
+  function fitToLines(el, targetLines){
+    const cs = getComputedStyle(el);
+    const original = parseFloat(el.dataset.originalFontSize || cs.fontSize) || 16;
+    let lo = Math.max(10, original * 0.55);
+    let hi = original, best = hi;
+
+    el.style.fontSize = hi + 'px';
+    if (countLines(el) <= targetLines) return;
+
+    for (let i = 0; i < 14; i++){
+      const mid = (lo + hi) / 2;
+      el.style.fontSize = mid + 'px';
+      const lines = countLines(el);
+      if (lines <= targetLines){ best = mid; lo = mid; }
+      else { hi = mid; }
+    }
+    el.style.fontSize = best + 'px';
+  }
+});
+
+document.addEventListener('DOMContentLoaded', () => {
+  const nav = document.querySelector('nav');
+  if (!nav) return;
+
+  // ——— Targets ———
+  const firstH3 = nav.querySelector('h3');
+  const divs = Array.from(nav.querySelectorAll('div'));
+  let lastH3 = null;
+  for (let i = divs.length - 1; i >= 0; i--) {
+    const h3 = divs[i].querySelector('h3');
+    if (h3) { lastH3 = h3; break; }
+  }
+  const anchors = Array.from(nav.querySelectorAll('a'));
+  const alonsoEl = document.querySelector('.alonso');
+  const pair = [firstH3, lastH3].filter(Boolean);
+  const mql = window.matchMedia('(max-width: 900px)');
+
+  // ——— Estado original ———
+  if (lastH3 && !lastH3.dataset.originalText) {
+    lastH3.dataset.originalText = lastH3.textContent.trim();
+  }
+  anchors.forEach(a => {
+    if (!a.dataset.originalTextDecoration) {
+      a.dataset.originalTextDecoration = a.style.textDecoration || '';
+    }
+  });
+  pair.forEach(h => {
+    if (!h) return;
+    const cs = getComputedStyle(h);
+    if (!h.dataset.originalFontSize) h.dataset.originalFontSize = cs.fontSize;
+  });
+
+  // ——— Preparar crossfade dentro del primer h3 ———
+  let front, back; // spans
+  if (firstH3) {
+    const holder = document.createElement('span');
+    holder.className = 'h3-crossfade';
+    // capas
+    front = document.createElement('span'); front.className = 'layer front';
+    back  = document.createElement('span'); back.className  = 'layer back';
+    // mover contenido original al front
+    const original = (firstH3.textContent || '').trim();
+    front.textContent = original || '';
+    back.textContent  = '';
+    // limpiar y añadir capas
+    firstH3.textContent = '';
+    firstH3.appendChild(holder);
+    holder.appendChild(front);
+    holder.appendChild(back);
+    // opacidades iniciales
+    front.style.opacity = '1';
+    back.style.opacity  = '0';
+    // accesibilidad
+    firstH3.setAttribute('aria-live', 'polite');
+  }
+
+  // ——— Helpers de texto ———
+  function labelWhenVisible(){ return mql.matches ? 'madrid' : 'based in madrid'; }
+  function labelWhenHidden(){ return 'alonso santamaría'; }
+
+  // Devuelve ratio visible (0–1); si no hay .alonso, tratamos como 1 (visible)
+  let alonsoRatio = alonsoEl ? isInViewportRatio(alonsoEl) : 1;
+
+  // Aplica el estado visual del crossfade en el primer h3 según ratio actual
+  function renderFirstH3ByRatio(){
+    if (!firstH3) return;
+
+    const showWhenVisible = labelWhenVisible();
+    const showWhenHidden  = labelWhenHidden();
+
+    // ¿Qué texto debe estar delante (en flujo) y cuál detrás (overlay)?
+    // Si alonso está más visible que no (ratio >= 0.5), el "delante" es el visible; si no, es el hidden.
+    const frontShouldBe = (alonsoRatio >= 0.5) ? showWhenVisible : showWhenHidden;
+    const backShouldBe  = (alonsoRatio >= 0.5) ? showWhenHidden  : showWhenVisible;
+
+    // Aseguramos que cada capa tenga el texto correcto
+    if (front && front.textContent.trim() !== frontShouldBe) front.textContent = frontShouldBe;
+    if (back  && back.textContent.trim()  !== backShouldBe)  back.textContent  = backShouldBe;
+
+    const prefersReduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+    if (prefersReduce) {
+      // Sin animación: cambio duro a mitad
+      const frontOpacity = (alonsoRatio >= 0.5) ? 1 : 1;
+      const backOpacity  = (alonsoRatio >= 0.5) ? 0 : 0;
+      front.style.opacity = String(frontOpacity);
+      back.style.opacity  = String(backOpacity);
+      firstH3.setAttribute('aria-label', frontShouldBe);
+    } else {
+      // Crossfade continuo: mientras .alonso desaparece, back pasa de 0→1
+      const progress = (alonsoRatio >= 0.5)
+        ? (1 - normalize(alonsoRatio, 0.5, 1))   // de 0 cuando 1→0.5
+        : (normalize(0.5 - alonsoRatio, 0, 0.5)); // de 0 cuando 0.5→0
+
+      // La capa de delante siempre opaca inversa a la de atrás
+      back.style.opacity  = String(progress);
+      front.style.opacity = String(1 - progress);
+
+      // Accesibilidad: cuando el back domina (>0.5), actualizamos aria-label
+      const ariaText = (progress >= 0.5) ? backShouldBe : frontShouldBe;
+      firstH3.setAttribute('aria-label', ariaText);
+    }
+  }
+
+  function normalize(x, a, b){
+    return Math.min(1, Math.max(0, (x - a) / (b - a || 1)));
+  }
+
+  // ——— Último h3 y subrayado ———
+  function applyAuxUI(){
+    // "art director" en ≤ 900px
+    if (lastH3 && (!firstH3 || firstH3 !== lastH3)) {
+      if (mql.matches) {
+        if (lastH3.textContent.trim() !== 'art director') {
+          lastH3.textContent = 'art director';
+          lastH3.setAttribute('aria-label', 'art director');
+        }
+      } else if (lastH3.dataset.originalText && lastH3.textContent.trim() !== lastH3.dataset.originalText) {
+        lastH3.textContent = lastH3.dataset.originalText;
+        lastH3.setAttribute('aria-label', lastH3.dataset.originalText);
+      }
+    }
+    // Subrayado en ≤ 900px
+    anchors.forEach(a => {
+      a.style.textDecoration = mql.matches ? 'underline' : (a.dataset.originalTextDecoration || '');
+    });
+  }
+
+  // ——— Igualar líneas en ≤ 900px ———
+  let ro = null, rafId = null;
+  function equalizeIfNeeded(){
+    if (!mql.matches) {
+      pair.forEach(h => { if (h) h.style.fontSize = h.dataset.originalFontSize || ''; });
+      if (ro) { ro.disconnect(); ro = null; }
+      return;
+    }
+    equalizeLinesMin(pair);
+    if (!ro) {
+      ro = new ResizeObserver(() => {
+        if (rafId) cancelAnimationFrame(rafId);
+        rafId = requestAnimationFrame(() => equalizeLinesMin(pair));
+      });
+      ro.observe(document.documentElement);
+    }
+  }
+
+  // ——— Observers ———
+  if (alonsoEl) {
+    const io = new IntersectionObserver((entries) => {
+      const e = entries[0];
+      alonsoRatio = e ? e.intersectionRatio : 1;
+      renderFirstH3ByRatio();   // ← actualiza durante la desaparición
+      // re-igualar líneas al final del frame (por si cambió el layout)
+      if (rafId) cancelAnimationFrame(rafId);
+      rafId = requestAnimationFrame(() => equalizeIfNeeded());
+    }, {
+      threshold: [0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1]
+    });
+    io.observe(alonsoEl);
+  }
+
+  // Breakpoint
+  if (mql.addEventListener) mql.addEventListener('change', () => {
+    renderFirstH3ByRatio();
+    applyAuxUI();
+    equalizeIfNeeded();
+  });
+  else mql.addListener(() => { renderFirstH3ByRatio(); applyAuxUI(); equalizeIfNeeded(); });
+
+  // Primera aplicación
+  renderFirstH3ByRatio();
+  applyAuxUI();
+  equalizeIfNeeded();
+
+  // ——— Utils de medida ———
+  function isInViewportRatio(el){
+    if (!el) return 1;
+    const r = el.getBoundingClientRect();
+    const vh = (window.innerHeight || document.documentElement.clientHeight);
+    const visible = Math.max(0, Math.min(r.bottom, vh) - Math.max(r.top, 0));
+    const height = Math.max(1, r.height || 1);
+    return Math.max(0, Math.min(1, visible / height));
+  }
+
+  function equalizeLinesMin(nodes){
+    const hs = nodes.filter(Boolean);
+    if (hs.length < 2) return;
+
+    // Reset
+    hs.forEach(h => { h.style.fontSize = h.dataset.originalFontSize || ''; });
+
+    const lines = hs.map(countLines);
+    const target = Math.min(...lines);
+    hs.forEach((h, i) => { if (lines[i] > target) fitToLines(h, target); });
+
+    const lines2 = hs.map(countLines);
+    const minAfter = Math.min(...lines2), maxAfter = Math.max(...lines2);
+    if (minAfter !== maxAfter) {
+      hs.forEach((h, i) => { if (lines2[i] > minAfter) fitToLines(h, minAfter); });
+    }
+  }
+
+  function countLines(el){
+    const cs = getComputedStyle(el);
+    const h = el.getBoundingClientRect().height;
+    let lh = parseFloat(cs.lineHeight);
+    if (isNaN(lh) || lh <= 0) {
+      const fs = parseFloat(cs.fontSize) || 16;
+      lh = fs * 1.2;
+    }
+    return Math.max(1, Math.round(h / lh));
+  }
+
+  function fitToLines(el, targetLines){
+    const cs = getComputedStyle(el);
+    const original = parseFloat(el.dataset.originalFontSize || cs.fontSize) || 16;
+    let lo = Math.max(10, original * 0.55);
+    let hi = original, best = hi;
+
+    el.style.fontSize = hi + 'px';
+    if (countLines(el) <= targetLines) return;
+
+    for (let i = 0; i < 14; i++){
+      const mid = (lo + hi) / 2;
+      el.style.fontSize = mid + 'px';
+      const lines = countLines(el);
+      if (lines <= targetLines){ best = mid; lo = mid; }
+      else { hi = mid; }
+    }
+    el.style.fontSize = best + 'px';
+  }
+});
