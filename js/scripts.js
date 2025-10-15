@@ -1,4 +1,4 @@
-window.addEventListener('DOMContentLoaded', () => {
+﻿window.addEventListener('DOMContentLoaded', () => {
     const body = document.body;
     const homeSection = document.querySelector(".home");
     const introSection = document.querySelector(".intro");
@@ -233,11 +233,31 @@ function setupHomeHeaderScroll() {
     const media = document.querySelector(".home_header-media");
     const headerCopy = gsap.utils.toArray(".home_header-copy");
     const track = media ? media.querySelector(".home_header-media-track") : null;
-    const cards = track ? gsap.utils.toArray(".home_header-media-card") : [];
+    const cards = track ? gsap.utils.toArray(".home_header-media-card:not([data-clone])") : [];
 
     if (!headerWrapper || !media || !track || !cards.length) {
         return;
     }
+
+    const ensureTrailingClone = () => {
+        if (!track || track.querySelector(".home_header-media-card[data-clone='true']")) {
+            return;
+        }
+        const firstCard = cards[0];
+        if (!firstCard) return;
+
+        const clone = firstCard.cloneNode(true);
+        clone.setAttribute("data-clone", "true");
+        clone.classList.add("home_header-media-card--clone");
+        clone.setAttribute("aria-hidden", "true");
+        clone.tabIndex = -1;
+        clone.style.pointerEvents = "none";
+        track.appendChild(clone);
+    };
+
+    ensureTrailingClone();
+
+    const getClones = () => track ? Array.from(track.querySelectorAll(".home_header-media-card[data-clone='true']")) : [];
 
     const prefersReducedMotion = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
     const nav = document.querySelector("nav");
@@ -299,7 +319,7 @@ function setupHomeHeaderScroll() {
             bottom: "",
             paddingLeft: "",
             paddingRight: "",
-            clearProps: "transform" // ← elimina transform inline para que gobierne el CSS
+            clearProps: "transform" // â† elimina transform inline para que gobierne el CSS
         });
         resetTrackPosition();
         setExpandedState(false);
@@ -330,34 +350,48 @@ function setupHomeHeaderScroll() {
 
     const computeTrackMetrics = () => {
         const availableWidth = media.clientWidth;
-        const totalWidth = track.scrollWidth;
+        const clones = getClones();
+        const previousX = gsap.getProperty(track, "x");
+        const safePreviousX = (typeof previousX === "number" && !Number.isNaN(previousX)) ? previousX : 0;
+        const cloneDisplayCache = [];
 
+        if (clones.length) {
+            clones.forEach((clone, idx) => {
+                cloneDisplayCache[idx] = clone.style.display;
+                clone.style.display = "none";
+            });
+        }
+
+        gsap.set(track, {
+            x: 0
+        });
+
+        const totalWidth = track.scrollWidth;
         let desiredOffset = Math.max(0, totalWidth - availableWidth);
         const lastCard = cards[cards.length - 1];
 
         if (lastCard) {
-            // Fuerza el desplazamiento suficiente para que la última tarjeta esté prácticamente fuera del viewport.
-            const previousX = gsap.getProperty(track, "x");
-            const safePreviousX = (typeof previousX === "number" && !Number.isNaN(previousX)) ? previousX : 0;
-
-            gsap.set(track, {
-                x: 0
-            });
-
+            // Ensure the last real card is nearly out of view.
             const mediaRect = media.getBoundingClientRect();
             const lastCardRect = lastCard.getBoundingClientRect();
             const distanceToLeft = Math.max(0, lastCardRect.left - mediaRect.left);
             const cardWidth = lastCardRect.width;
-            const almostGoneMargin = Math.max(32, cardWidth * 0.1);
+            const almostGoneMargin = Math.max(32, cardWidth * 0.5);
             const almostGoneOffset = Math.min(
                 totalWidth,
                 distanceToLeft + Math.max(0, cardWidth - almostGoneMargin)
             );
 
             desiredOffset = Math.max(desiredOffset, almostGoneOffset);
+        }
 
-            gsap.set(track, {
-                x: safePreviousX
+        gsap.set(track, {
+            x: safePreviousX
+        });
+
+        if (clones.length) {
+            clones.forEach((clone, idx) => {
+                clone.style.display = cloneDisplayCache[idx];
             });
         }
 
@@ -563,36 +597,54 @@ function setupProjectSlider() {
     };
 
     const computeTrackMetrics = () => {
-        maxTrackOffset = Math.max(0, track.scrollWidth - media.clientWidth);
+        const availableWidth = media.clientWidth;
+        const clones = getClones();
+        const previousX = gsap.getProperty(track, "x");
+        const safePreviousX = (typeof previousX === "number" && !Number.isNaN(previousX)) ? previousX : 0;
+        const cloneDisplayCache = [];
+
+        if (clones.length) {
+            clones.forEach((clone, idx) => {
+                cloneDisplayCache[idx] = clone.style.display;
+                clone.style.display = "none";
+            });
+        }
+
+        gsap.set(track, {
+            x: 0
+        });
+
+        const totalWidth = track.scrollWidth;
+        let desiredOffset = Math.max(0, totalWidth - availableWidth);
+        const lastCard = cards[cards.length - 1];
+
+        if (lastCard) {
+            // Ensure the last real card is nearly out of view.
+            const mediaRect = media.getBoundingClientRect();
+            const lastCardRect = lastCard.getBoundingClientRect();
+            const distanceToLeft = Math.max(0, lastCardRect.left - mediaRect.left);
+            const cardWidth = lastCardRect.width;
+            const almostGoneMargin = Math.max(32, cardWidth * 0.1);
+            const almostGoneOffset = Math.min(
+                totalWidth,
+                distanceToLeft + Math.max(0, cardWidth - almostGoneMargin)
+            );
+
+            desiredOffset = Math.max(desiredOffset, almostGoneOffset);
+        }
+
+        gsap.set(track, {
+            x: safePreviousX
+        });
+
+        if (clones.length) {
+            clones.forEach((clone, idx) => {
+                clone.style.display = cloneDisplayCache[idx];
+            });
+        }
+
+        maxTrackOffset = desiredOffset;
         return maxTrackOffset;
-    };
-
-    const getProjectedTravel = () => Math.max(0, track.scrollWidth - targetWidth());
-
-    const getScrollLength = () => {
-        const viewport = window.innerHeight;
-        const travel = getProjectedTravel();
-        return Math.max(viewport * 1.2, travel + viewport * 0.5);
-    };
-
-    const computeStartOffset = () => {
-        const scrollY = window.scrollY || window.pageYOffset || 0;
-        const coverRect = cover.getBoundingClientRect();
-        const sliderRect = sliderSection.getBoundingClientRect();
-        const coverCenterScroll = scrollY + coverRect.top + coverRect.height / 2;
-        const viewportCenter = window.innerHeight / 2;
-        const sliderTopScroll = scrollY + sliderRect.top;
-        return Math.round(coverCenterScroll - viewportCenter - sliderTopScroll);
-    };
-
-    const formatStartOffset = (offset) => {
-        if (Math.abs(offset) < 1) {
-            return "top top";
-        }
-        if (offset > 0) {
-            return "top+=" + offset + " top";
-        }
-        return "top-=" + Math.abs(offset) + " top";
     };
 
     const scrollTriggerConfig = {
@@ -743,7 +795,7 @@ document.addEventListener('DOMContentLoaded', () => {
   // 1) Primer h3 del nav
   const firstH3 = nav.querySelector('h3');
 
-  // 2) Último div que contenga un h3 (buscando desde el final)
+  // 2) Ãšltimo div que contenga un h3 (buscando desde el final)
   const divs = Array.from(nav.querySelectorAll('div'));
   let lastH3 = null;
   for (let i = divs.length - 1; i >= 0; i--) {
@@ -772,12 +824,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
   const apply = () => {
     if (mql.matches) {
-      // ≤ 900px
+      // â‰¤ 900px
       if (firstH3 && firstH3.textContent.trim() !== 'Madrid -') {
         firstH3.textContent = 'Madrid';
         firstH3.setAttribute('aria-label', 'Madrid');
       }
-      // Si por casualidad el primer y el último h3 son el mismo elemento, priorizamos "Madrid -"
+      // Si por casualidad el primer y el Ãºltimo h3 son el mismo elemento, priorizamos "Madrid -"
       if (lastH3 && !sameTarget && lastH3.textContent.trim() !== 'art director') {
         lastH3.textContent = 'art director';
         lastH3.setAttribute('aria-label', 'art director');
@@ -799,7 +851,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   };
 
-  // Inicial y en cambios de tamaño
+  // Inicial y en cambios de tamaÃ±o
   apply();
   if (mql.addEventListener) {
     mql.addEventListener('change', apply);
@@ -847,7 +899,7 @@ document.addEventListener('DOMContentLoaded', () => {
   // --- Core ---
   function desiredFirstH3Text(isVisible){
     if (mql.matches) {
-      // ≤ 900px
+      // â‰¤ 900px
       return isVisible ? 'madrid' : 'alonso santamaría';
     }
     // > 900px
@@ -855,7 +907,7 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   function apply(){
-    // 1) Primer h3: según visibilidad de .alonso + breakpoint
+    // 1) Primer h3: segÃºn visibilidad de .alonso + breakpoint
     if (firstH3) {
       const next = desiredFirstH3Text(alonsoVisible);
       if (firstH3.textContent.trim() !== next) {
@@ -864,7 +916,7 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     }
 
-    // 2) Último h3 del último div: solo ≤ 900px -> "art director", >900px restaura
+    // 2) Ãšltimo h3 del Ãºltimo div: solo â‰¤ 900px -> "art director", >900px restaura
     if (lastH3 && (!firstH3 || firstH3 !== lastH3)) {
       if (mql.matches) {
         if (lastH3.textContent.trim() !== 'art director') {
@@ -877,12 +929,12 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     }
 
-    // 3) Subrayado de anchors en ≤ 900px
+    // 3) Subrayado de anchors en â‰¤ 900px
     anchors.forEach(a => {
       a.style.textDecoration = mql.matches ? 'underline' : (a.dataset.originalTextDecoration || '');
     });
 
-    // 4) Igualar líneas de ambos h3 en ≤ 900px
+    // 4) Igualar lÃ­neas de ambos h3 en â‰¤ 900px
     if (mql.matches) {
       equalizeLinesMin(pair);
       if (!ro) {
@@ -893,7 +945,7 @@ document.addEventListener('DOMContentLoaded', () => {
         ro.observe(document.documentElement);
       }
     } else {
-      // Restablece font-size si se tocó
+      // Restablece font-size si se tocÃ³
       pair.forEach(h => { if (h) h.style.fontSize = h.dataset.originalFontSize || ''; });
       if (ro) { ro.disconnect(); ro = null; }
     }
@@ -931,14 +983,14 @@ document.addEventListener('DOMContentLoaded', () => {
     const hs = nodes.filter(Boolean);
     if (hs.length < 2) return;
 
-    // Solo modificamos el font-size en ≤ 900px
+    // Solo modificamos el font-size en â‰¤ 900px
     hs.forEach(h => { h.style.fontSize = h.dataset.originalFontSize || ''; });
 
     const lines = hs.map(countLines);
     const target = Math.min(...lines);
     hs.forEach((h, i) => { if (lines[i] > target) fitToLines(h, target); });
 
-    // Segundo pase suave si aún difiere
+    // Segundo pase suave si aÃºn difiere
     const lines2 = hs.map(countLines);
     const minAfter = Math.min(...lines2), maxAfter = Math.max(...lines2);
     if (minAfter !== maxAfter) {
@@ -981,7 +1033,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const nav = document.querySelector('nav');
   if (!nav) return;
 
-  // ——— Targets ———
+  // â€”â€”â€” Targets â€”â€”â€”
   const firstH3 = nav.querySelector('h3');
   const divs = Array.from(nav.querySelectorAll('div'));
   let lastH3 = null;
@@ -994,7 +1046,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const pair = [firstH3, lastH3].filter(Boolean);
   const mql = window.matchMedia('(max-width: 900px)');
 
-  // ——— Estado original ———
+  // â€”â€”â€” Estado original â€”â€”â€”
   if (lastH3 && !lastH3.dataset.originalText) {
     lastH3.dataset.originalText = lastH3.textContent.trim();
   }
@@ -1009,7 +1061,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (!h.dataset.originalFontSize) h.dataset.originalFontSize = cs.fontSize;
   });
 
-  // ——— Preparar crossfade dentro del primer h3 ———
+  // â€”â€”â€” Preparar crossfade dentro del primer h3 â€”â€”â€”
   let front, back; // spans
   if (firstH3) {
     const holder = document.createElement('span');
@@ -1021,7 +1073,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const original = (firstH3.textContent || '').trim();
     front.textContent = original || '';
     back.textContent  = '';
-    // limpiar y añadir capas
+    // limpiar y aÃ±adir capas
     firstH3.textContent = '';
     firstH3.appendChild(holder);
     holder.appendChild(front);
@@ -1033,22 +1085,22 @@ document.addEventListener('DOMContentLoaded', () => {
     firstH3.setAttribute('aria-live', 'polite');
   }
 
-  // ——— Helpers de texto ———
+  // â€”â€”â€” Helpers de texto â€”â€”â€”
   function labelWhenVisible(){ return mql.matches ? 'madrid' : 'based in madrid'; }
-  function labelWhenHidden(){ return 'alonso santamaría'; }
+  function labelWhenHidden(){ return 'alonso santamarÃ­a'; }
 
-  // Devuelve ratio visible (0–1); si no hay .alonso, tratamos como 1 (visible)
+  // Devuelve ratio visible (0â€“1); si no hay .alonso, tratamos como 1 (visible)
   let alonsoRatio = alonsoEl ? isInViewportRatio(alonsoEl) : 1;
 
-  // Aplica el estado visual del crossfade en el primer h3 según ratio actual
+  // Aplica el estado visual del crossfade en el primer h3 segÃºn ratio actual
   function renderFirstH3ByRatio(){
     if (!firstH3) return;
 
     const showWhenVisible = labelWhenVisible();
     const showWhenHidden  = labelWhenHidden();
 
-    // ¿Qué texto debe estar delante (en flujo) y cuál detrás (overlay)?
-    // Si alonso está más visible que no (ratio >= 0.5), el "delante" es el visible; si no, es el hidden.
+    // Â¿QuÃ© texto debe estar delante (en flujo) y cuÃ¡l detrÃ¡s (overlay)?
+    // Si alonso estÃ¡ mÃ¡s visible que no (ratio >= 0.5), el "delante" es el visible; si no, es el hidden.
     const frontShouldBe = (alonsoRatio >= 0.5) ? showWhenVisible : showWhenHidden;
     const backShouldBe  = (alonsoRatio >= 0.5) ? showWhenHidden  : showWhenVisible;
 
@@ -1059,19 +1111,19 @@ document.addEventListener('DOMContentLoaded', () => {
     const prefersReduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
     if (prefersReduce) {
-      // Sin animación: cambio duro a mitad
+      // Sin animaciÃ³n: cambio duro a mitad
       const frontOpacity = (alonsoRatio >= 0.5) ? 1 : 1;
       const backOpacity  = (alonsoRatio >= 0.5) ? 0 : 0;
       front.style.opacity = String(frontOpacity);
       back.style.opacity  = String(backOpacity);
       firstH3.setAttribute('aria-label', frontShouldBe);
     } else {
-      // Crossfade continuo: mientras .alonso desaparece, back pasa de 0→1
+      // Crossfade continuo: mientras .alonso desaparece, back pasa de 0â†’1
       const progress = (alonsoRatio >= 0.5)
-        ? (1 - normalize(alonsoRatio, 0.5, 1))   // de 0 cuando 1→0.5
-        : (normalize(0.5 - alonsoRatio, 0, 0.5)); // de 0 cuando 0.5→0
+        ? (1 - normalize(alonsoRatio, 0.5, 1))   // de 0 cuando 1â†’0.5
+        : (normalize(0.5 - alonsoRatio, 0, 0.5)); // de 0 cuando 0.5â†’0
 
-      // La capa de delante siempre opaca inversa a la de atrás
+      // La capa de delante siempre opaca inversa a la de atrÃ¡s
       back.style.opacity  = String(progress);
       front.style.opacity = String(1 - progress);
 
@@ -1085,9 +1137,9 @@ document.addEventListener('DOMContentLoaded', () => {
     return Math.min(1, Math.max(0, (x - a) / (b - a || 1)));
   }
 
-  // ——— Último h3 y subrayado ———
+  // â€”â€”â€” Ãšltimo h3 y subrayado â€”â€”â€”
   function applyAuxUI(){
-    // "art director" en ≤ 900px
+    // "art director" en â‰¤ 900px
     if (lastH3 && (!firstH3 || firstH3 !== lastH3)) {
       if (mql.matches) {
         if (lastH3.textContent.trim() !== 'art director') {
@@ -1099,13 +1151,13 @@ document.addEventListener('DOMContentLoaded', () => {
         lastH3.setAttribute('aria-label', lastH3.dataset.originalText);
       }
     }
-    // Subrayado en ≤ 900px
+    // Subrayado en â‰¤ 900px
     anchors.forEach(a => {
       a.style.textDecoration = mql.matches ? 'underline' : (a.dataset.originalTextDecoration || '');
     });
   }
 
-  // ——— Igualar líneas en ≤ 900px ———
+  // â€”â€”â€” Igualar lÃ­neas en â‰¤ 900px â€”â€”â€”
   let ro = null, rafId = null;
   function equalizeIfNeeded(){
     if (!mql.matches) {
@@ -1123,13 +1175,13 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
-  // ——— Observers ———
+  // â€”â€”â€” Observers â€”â€”â€”
   if (alonsoEl) {
     const io = new IntersectionObserver((entries) => {
       const e = entries[0];
       alonsoRatio = e ? e.intersectionRatio : 1;
-      renderFirstH3ByRatio();   // ← actualiza durante la desaparición
-      // re-igualar líneas al final del frame (por si cambió el layout)
+      renderFirstH3ByRatio();   // â† actualiza durante la desapariciÃ³n
+      // re-igualar lÃ­neas al final del frame (por si cambiÃ³ el layout)
       if (rafId) cancelAnimationFrame(rafId);
       rafId = requestAnimationFrame(() => equalizeIfNeeded());
     }, {
@@ -1146,12 +1198,12 @@ document.addEventListener('DOMContentLoaded', () => {
   });
   else mql.addListener(() => { renderFirstH3ByRatio(); applyAuxUI(); equalizeIfNeeded(); });
 
-  // Primera aplicación
+  // Primera aplicaciÃ³n
   renderFirstH3ByRatio();
   applyAuxUI();
   equalizeIfNeeded();
 
-  // ——— Utils de medida ———
+  // â€”â€”â€” Utils de medida â€”â€”â€”
   function isInViewportRatio(el){
     if (!el) return 1;
     const r = el.getBoundingClientRect();
@@ -1211,14 +1263,19 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 document.addEventListener('DOMContentLoaded', () => {
-  const root = document.querySelector('.home_header-copy');
-  if (!root) return;
+  const roots = Array.from(document.querySelectorAll('.home_header-copy'));
+  if (!roots.length) return;
 
-  const blocks = collectTextBlocks(root);
-  blocks.forEach(b => preventWidow(b, 2));
+  roots.forEach((root) => {
+    const blocks = collectTextBlocks(root);
+    blocks.forEach((block) => {
+      preventWidow(block, 2);
+      ensureLastWordSpan(block);
+    });
+  });
 });
 
-/* ——— Helpers ——— */
+/* â€”â€”â€” Helpers â€”â€”â€” */
 function collectTextBlocks(root){
   const selectors = 'p,h1,h2,h3,h4,h5,h6,li,blockquote';
   const inner = Array.from(root.querySelectorAll(selectors));
@@ -1228,31 +1285,60 @@ function collectTextBlocks(root){
 }
 
 function preventWidow(el, keepWords = 2){
-  if (el.querySelector('.no-widow')) return;
+  const existing = el.querySelector('.no-widow');
+  if (existing) return existing;
   const text = el.textContent || '';
-  if (text.trim().split(/\s+/).length <= keepWords) return;
+  if (text.trim().split(/\s+/).length <= keepWords) return null;
 
   try {
-    wrapLastWords(el, keepWords);
+    return wrapLastWords(el, keepWords);
   } catch {
     const lastText = getLastTextNode(el);
     if (lastText){
       lastText.nodeValue = lastText.nodeValue.replace(/\s+(\S+)\s*$/, '\u00A0$1');
     }
+    return null;
   }
 }
 
-function wrapLastWords(el, keepWords){
-  const nodes = getTextNodes(el);
-  if (!nodes.length) return;
+function ensureLastWordSpan(el){
+  if (!el) return null;
+  const host = el.querySelector('.no-widow') || el;
+  if (!host) return null;
+  const existing = host.querySelector('.home_header-copy-last');
+  if (existing) return existing;
 
-  // Fin (último carácter no blanco)
+  return wrapLastWords(host, 1, {
+    className: 'home_header-copy-last',
+    whiteSpace: 'inherit',
+    copyFrom: el,
+    skipIfExistsSelector: '.home_header-copy-last'
+  });
+}
+
+function wrapLastWords(el, keepWords, options = {}){
+  const {
+    className = 'no-widow',
+    whiteSpace = 'nowrap',
+    copyFrom = el,
+    skipIfExistsSelector
+  } = options;
+
+  if (skipIfExistsSelector){
+    const existing = el.querySelector(skipIfExistsSelector);
+    if (existing) return existing;
+  }
+
+  const nodes = getTextNodes(el);
+  if (!nodes.length) return null;
+
+  // Fin (Ãºltimo carÃ¡cter no blanco)
   let endNode=null, endOffset=0;
   for (let i = nodes.length - 1; i >= 0; i--){
     const t = nodes[i].nodeValue, m = t.match(/\S(?=[\s]*$)/);
     if (m){ endNode = nodes[i]; endOffset = t.lastIndexOf(m[0]) + 1; break; }
   }
-  if (!endNode) return;
+  if (!endNode) return null;
 
   // Inicio (comienzo de la palabra N desde el final)
   let wordsSeen=0, inWord=false, startNode=null, startOffset=0;
@@ -1272,20 +1358,26 @@ function wrapLastWords(el, keepWords){
       } else { inWord = false; }
     }
   }
-  if (!startNode) return;
+  if (!startNode) return null;
 
   const range = document.createRange();
   range.setStart(startNode, startOffset);
   range.setEnd(endNode, endOffset);
 
   const span = document.createElement('span');
-  span.className = 'no-widow';
-  span.style.whiteSpace = 'nowrap';
-  copyTypography(el, span);          // 👈 Copia tipografía exacta del contenedor
+  if (className) span.className = className;
+  if (typeof whiteSpace === 'string' && whiteSpace.length){
+    span.style.whiteSpace = whiteSpace;
+  } else if (whiteSpace === null){
+    span.style.removeProperty('white-space');
+  }
+  copyTypography(copyFrom, span);          // ðŸ‘ˆ Copia tipografÃ­a exacta del contenedor
   range.surroundContents(span);
+  return span;
 }
 
 function copyTypography(fromEl, toEl){
+  if (!fromEl || !toEl) return;
   const cs = getComputedStyle(fromEl);
   toEl.style.font                 = cs.font;
   toEl.style.letterSpacing        = cs.letterSpacing;
@@ -1313,3 +1405,4 @@ function getLastTextNode(el){
   const nodes = getTextNodes(el);
   return nodes[nodes.length - 1] || null;
 }
+

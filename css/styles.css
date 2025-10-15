@@ -67,6 +67,7 @@ p {
 
 .intro {
   position: relative;
+  min-height: 100vh;
   height: 100vh;
   width: 100%;
   background-color: #fff;
@@ -170,10 +171,18 @@ nav>div:last-child>h3 {
 
 .home_header {
   position: relative;
+  min-height: 100vh;
   height: 100vh;
   width: 100vw;
   padding: 0;
   overflow: visible;
+}
+@supports (height: 100dvh) {
+  .intro,
+  .home_header {
+    min-height: 100dvh;
+    height: 100dvh;
+  }
 }
 
 .home_header-media {
@@ -209,6 +218,14 @@ nav>div:last-child>h3 {
   width: 100%;
   height: 100%;
   overflow: hidden;
+}
+
+.home_header-media-card[data-clone="true"] {
+  pointer-events: none;
+}
+
+.home_header-media-card[data-clone="true"] img {
+  pointer-events: none;
 }
 
 .home_header-media--expanded {
@@ -777,6 +794,18 @@ body.project-page {
   font-variation-settings: inherit;
   word-spacing: inherit;
   line-height: inherit;
+}
+
+.home_header-copy .home_header-copy-last {
+  display: inline;
+  font: inherit;
+  letter-spacing: inherit;
+  text-transform: inherit;
+  font-feature-settings: inherit;
+  font-variation-settings: inherit;
+  word-spacing: inherit;
+  line-height: inherit;
+  white-space: inherit;
 }
 
 
