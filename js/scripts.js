@@ -1144,10 +1144,10 @@ document.addEventListener('DOMContentLoaded', () => {
   function desiredFirstH3Text(isVisible){
     if (mql.matches) {
       // â‰¤ 900px
-      return isVisible ? 'madrid' : 'alonso santamaría';
+      return isVisible ? 'madrid' : 'alonso.s';
     }
     // > 900px
-    return isVisible ? 'based in madrid' : 'alonso santamaría';
+    return isVisible ? 'based in madrid' : 'alonso.s';
   }
 
   function apply(){
