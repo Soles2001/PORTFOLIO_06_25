@@ -348,7 +348,7 @@ function setupHomeHeaderScroll() {
             const lastCardRect = lastCard.getBoundingClientRect();
             const distanceToLeft = Math.max(0, lastCardRect.left - mediaRect.left);
             const cardWidth = lastCardRect.width;
-            const almostGoneMargin = Math.max(32, cardWidth * 0.2);
+            const almostGoneMargin = Math.max(32, cardWidth * 0.1);
             const almostGoneOffset = Math.min(
                 totalWidth,
                 distanceToLeft + Math.max(0, cardWidth - almostGoneMargin)
