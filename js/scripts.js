@@ -331,7 +331,37 @@ function setupHomeHeaderScroll() {
     const computeTrackMetrics = () => {
         const availableWidth = media.clientWidth;
         const totalWidth = track.scrollWidth;
-        maxTrackOffset = Math.max(0, totalWidth - availableWidth);
+
+        let desiredOffset = Math.max(0, totalWidth - availableWidth);
+        const lastCard = cards[cards.length - 1];
+
+        if (lastCard) {
+            // Fuerza el desplazamiento suficiente para que la última tarjeta esté prácticamente fuera del viewport.
+            const previousX = gsap.getProperty(track, "x");
+            const safePreviousX = (typeof previousX === "number" && !Number.isNaN(previousX)) ? previousX : 0;
+
+            gsap.set(track, {
+                x: 0
+            });
+
+            const mediaRect = media.getBoundingClientRect();
+            const lastCardRect = lastCard.getBoundingClientRect();
+            const distanceToLeft = Math.max(0, lastCardRect.left - mediaRect.left);
+            const cardWidth = lastCardRect.width;
+            const almostGoneMargin = Math.max(32, cardWidth * 0.2);
+            const almostGoneOffset = Math.min(
+                totalWidth,
+                distanceToLeft + Math.max(0, cardWidth - almostGoneMargin)
+            );
+
+            desiredOffset = Math.max(desiredOffset, almostGoneOffset);
+
+            gsap.set(track, {
+                x: safePreviousX
+            });
+        }
+
+        maxTrackOffset = desiredOffset;
         return maxTrackOffset;
     };
 
