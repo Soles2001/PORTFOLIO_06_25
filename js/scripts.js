@@ -2,8 +2,13 @@
     const body = document.body;
     const homeSection = document.querySelector(".home");
     const introSection = document.querySelector(".intro");
+    const heroMedia = document.querySelector(".home_header-media");
+    const firstHeroMediaElement = heroMedia ? heroMedia.querySelector("img, video") : null;
     const INTRO_SEEN_KEY = "introSeen";
     let hasSeenIntro = false;
+    let introComplete = false;
+    let heroReady = !heroMedia;
+    let copiesReady = false;
 
     try {
         hasSeenIntro = sessionStorage.getItem(INTRO_SEEN_KEY) === "true";
@@ -17,31 +22,143 @@
         } catch (error) {}
     };
 
-    const setAppReady = () => {
-        if (body.classList.contains("intro-active") || body.classList.contains("app-ready")) {
+    const disableScroll = () => {
+        body.style.overflow = "hidden";
+        body.style.overflowX = "hidden";
+    };
+
+    const enableScroll = () => {
+        body.style.overflow = "auto";
+        body.style.overflowX = "hidden";
+        body.classList.add("scroll-unlocked");
+    };
+
+    const maybeEnableScroll = () => {
+        if (introComplete && heroReady && copiesReady) {
+            enableScroll();
+        }
+    };
+
+    const markIntroDone = () => {
+        if (introComplete) {
             return;
         }
-        body.classList.add("app-ready");
+        introComplete = true;
+        maybeEnableScroll();
+    };
+
+    const markHeroReady = () => {
+        if (heroReady) {
+            return;
+        }
+        heroReady = true;
+        body.classList.add("hero-ready");
+        maybeEnableScroll();
+    };
+
+    const ensureCopiesVisible = () => {
+        if (copiesReady || !body.classList.contains("app-ready")) {
+            return;
+        }
+
+        const copies = document.querySelectorAll(".home_header-copy");
+        if (!copies.length) {
+            copiesReady = true;
+            body.classList.add("copy-ready");
+            maybeEnableScroll();
+            return;
+        }
+
+        const allVisible = Array.from(copies).every((copy) => {
+            const styles = window.getComputedStyle(copy);
+            return styles.visibility !== "hidden" &&
+                parseFloat(styles.opacity || "1") > 0 &&
+                copy.getBoundingClientRect().height > 0;
+        });
+
+        if (allVisible) {
+            copiesReady = true;
+            body.classList.add("copy-ready");
+            maybeEnableScroll();
+        } else {
+            window.setTimeout(ensureCopiesVisible, 60);
+        }
+    };
+
+    const waitForHeroMedia = (element) => {
+        if (!element) {
+            markHeroReady();
+            return;
+        }
+
+        const handleReady = () => {
+            element.removeEventListener("load", handleReady);
+            element.removeEventListener("error", handleReady);
+            element.removeEventListener("loadeddata", handleReady);
+            markHeroReady();
+        };
+
+        if (element.tagName === "IMG") {
+            if (element.complete && element.naturalWidth > 0) {
+                markHeroReady();
+            } else {
+                element.addEventListener("load", handleReady, { once: true });
+                element.addEventListener("error", handleReady, { once: true });
+            }
+        } else if (element.tagName === "VIDEO") {
+            if (element.readyState >= 2) {
+                markHeroReady();
+            } else {
+                element.addEventListener("loadeddata", handleReady, { once: true });
+                element.addEventListener("error", handleReady, { once: true });
+            }
+        } else {
+            markHeroReady();
+        }
+
+        window.setTimeout(markHeroReady, 4500);
+    };
+
+    const initializeHome = () => {
+        disableScroll();
+        waitForHeroMedia(firstHeroMediaElement);
+        if (body.classList.contains("app-ready")) {
+            ensureCopiesVisible();
+        }
+    };
+
+    const setAppReady = () => {
+        if (!body.classList.contains("app-ready")) {
+            body.classList.add("app-ready");
+        }
+
+        if (!copiesReady) {
+            if (document.fonts && document.fonts.ready && typeof document.fonts.ready.then === "function") {
+                document.fonts.ready.then(ensureCopiesVisible).catch(() => ensureCopiesVisible());
+            }
+            ensureCopiesVisible();
+        }
     };
 
     window.addEventListener("load", setAppReady, {
         once: true
     });
 
-    if (!homeSection || !introSection || hasSeenIntro) {
+    if (!homeSection || !introSection) {
+        setAppReady();
+        enableScroll();
+        return;
+    }
+
+    initializeHome();
+
+    if (hasSeenIntro) {
         body.classList.remove("intro-active");
         body.classList.remove("logo-hidden");
         body.classList.add("logo-visible");
-        body.style.overflow = "auto";
-        body.style.overflowX = "hidden";
 
-        if (homeSection) {
-            homeSection.style.top = "0";
-        }
-
-        if (introSection) {
-            introSection.style.display = "none";
-        }
+        homeSection.style.top = "0";
+        introSection.style.display = "none";
 
         const alonsoLogoEl = document.querySelector(".alonso");
         if (alonsoLogoEl) {
@@ -54,6 +171,7 @@
 
         markIntroSeen();
         setAppReady();
+        markIntroDone();
         return;
     }
 
@@ -66,10 +184,7 @@
         ease: "power2.inOut",
         delay: 2
     }).to(".home", {
-        onStart: () => {
-            document.body.style.overflow = "auto";
-            document.body.style.overflowX = "hidden";
-        }
+        onStart: disableScroll
     }).add(() => {
         document.body.classList.remove("intro-active");
 
@@ -87,6 +202,7 @@
 
         markIntroSeen();
         setAppReady();
+        markIntroDone();
     });
 });
 
@@ -1533,4 +1649,6 @@ function getLastTextNode(el){
   const nodes = getTextNodes(el);
   return nodes[nodes.length - 1] || null;
 }
+
+
 

@@ -151,6 +151,10 @@ body.logo-hidden nav {
   top: 0;
 }
 
+body.intro-active {
+  overflow: hidden;
+}
+
 body.intro-active nav,
 body.intro-active .alonso {
   opacity: 0;
