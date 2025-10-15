@@ -720,6 +720,10 @@ body.project-page {
 }
 
 @media (max-width: 900px) {
+  nav {
+    padding-top: 4%;
+  }
+
   .home_header-media {
     top: 50% !important;
     bottom: auto !important;
