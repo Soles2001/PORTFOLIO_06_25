@@ -344,7 +344,6 @@ body.footer-theme footer {
   background: #fff;
   mix-blend-mode: difference;
   border-radius: 50%;
-  border: 1px solid grey;
   backface-visibility: hidden;
   z-index: 10000000;
   pointer-events: none;
@@ -677,6 +676,10 @@ body.project-page {
     width: min(88vw, 420px);
     padding-left: 0;
     padding-right: 0;
+  }
+
+  .cursor{
+    display: none;
   }
 
   .project-hero {
