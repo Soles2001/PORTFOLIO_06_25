@@ -645,11 +645,6 @@ body.project-page {
   padding: 0;
 }
 
-.footer-about__item a {
-  text-decoration: underline;
-  text-decoration-thickness: 1px;
-  text-underline-offset: 4px;
-}
 
 @media (max-width: 1100px) {
   .footer-about__experience {
