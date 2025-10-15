@@ -17,6 +17,17 @@
         } catch (error) {}
     };
 
+    const setAppReady = () => {
+        if (body.classList.contains("intro-active") || body.classList.contains("app-ready")) {
+            return;
+        }
+        body.classList.add("app-ready");
+    };
+
+    window.addEventListener("load", setAppReady, {
+        once: true
+    });
+
     if (!homeSection || !introSection || hasSeenIntro) {
         body.classList.remove("intro-active");
         body.classList.remove("logo-hidden");
@@ -42,6 +53,7 @@
         });
 
         markIntroSeen();
+        setAppReady();
         return;
     }
 
@@ -74,48 +86,75 @@
         });
 
         markIntroSeen();
+        setAppReady();
     });
 });
 
-let items = gsap.utils.toArray("a"),
-    cursor = document.querySelector("#Cursor"),
+const cursor = document.querySelector("#Cursor");
+const cursorTargetRegistry = new WeakSet();
+let xTo = null;
+let yTo = null;
+
+const cursorEnterHandler = () => {
+    if (!cursor) return;
+    gsap.to(cursor, {
+        scale: 1.5,
+        duration: 0.2,
+        overwrite: "auto"
+    });
+};
+
+const cursorLeaveHandler = () => {
+    if (!cursor) return;
+    gsap.to(cursor, {
+        scale: 0.2,
+        duration: 0.2,
+        overwrite: "auto"
+    });
+};
+
+function registerCursorTargets(targets) {
+    if (!cursor || !targets) {
+        return;
+    }
+
+    const list = Array.isArray(targets) ? targets : Array.from(targets);
+
+    list.forEach((target) => {
+        if (!target || cursorTargetRegistry.has(target)) {
+            return;
+        }
+        cursorTargetRegistry.add(target);
+        target.addEventListener("mouseenter", cursorEnterHandler);
+        target.addEventListener("mouseleave", cursorLeaveHandler);
+    });
+}
+
+if (cursor) {
     xTo = gsap.quickTo(cursor, "x", {
         duration: 0.3,
         ease: "power3"
-    }),
+    });
+
     yTo = gsap.quickTo(cursor, "y", {
         duration: 0.3,
         ease: "power3"
     });
 
-// center cursor on pointer, and scale it to 20px
-gsap.set(cursor, {
-    scale: 0.2,
-    xPercent: -50,
-    yPercent: -50
-});
-
-window.addEventListener("mousemove", (e) => {
-    xTo(e.clientX);
-    yTo(e.clientY);
-});
-
-items.forEach((item) => {
-    item.addEventListener("mouseenter", () => {
-        gsap.to(cursor, {
-            scale: 1.5,
-            duration: 0.2,
-            overwrite: "auto"
-        })
+    // center cursor on pointer, and scale it to 20px
+    gsap.set(cursor, {
+        scale: 0.2,
+        xPercent: -50,
+        yPercent: -50
     });
-    item.addEventListener("mouseleave", () => {
-        gsap.to(cursor, {
-            scale: 0.2,
-            duration: 0.2,
-            overwrite: "auto"
-        })
+
+    window.addEventListener("mousemove", (e) => {
+        xTo(e.clientX);
+        yTo(e.clientY);
     });
-});
+
+    registerCursorTargets(gsap.utils.toArray("a"));
+}
 
 const alonsoLogo = document.querySelector(".alonso");
 const rootElement = document.documentElement;
@@ -216,7 +255,19 @@ if (alonsoLogo) {
     });
 }
 
+const PROJECT_SEQUENCE = Object.freeze([
+    { path: "minority.html", label: "Minority" },
+    { path: "cofi.html", label: "Cofi" },
+    { path: "thompson.html", label: "Thompson" },
+    { path: "madrid_fusion.html", label: "Madrid Fusion" },
+    { path: "valencia_wines.html", label: "Valencia Wines" },
+    { path: "keller.html", label: "Keller" },
+    { path: "adn_forum.html", label: "ADN Forum" }
+]);
+
 document.addEventListener("DOMContentLoaded", setupHomeHeaderScroll);
+document.addEventListener("DOMContentLoaded", setupProjectNavLinks);
+document.addEventListener("DOMContentLoaded", setupAlonsoNavigation);
 document.addEventListener("DOMContentLoaded", setupProjectSlider);
 document.addEventListener("DOMContentLoaded", setupFooterThemeToggle);
 
@@ -510,6 +561,119 @@ function setupHomeHeaderScroll() {
     window.addEventListener("orientationchange", handleResize);
 }
 
+function setupProjectNavLinks() {
+    if (!document.body.classList.contains("project-page") || !PROJECT_SEQUENCE.length) {
+        return;
+    }
+
+    const menu = document.querySelector("nav .menu");
+    if (!menu || menu.querySelector("[data-project-nav]")) {
+        return;
+    }
+
+    const homeLink = menu.querySelector('a[href$="index.html"]');
+    if (!homeLink) {
+        return;
+    }
+
+    const homeHeading = homeLink.querySelector("h3");
+    if (homeHeading && homeHeading.textContent.trim() !== "HOME") {
+        homeHeading.textContent = "HOME";
+        homeHeading.setAttribute("aria-label", "Home");
+    }
+    homeLink.setAttribute("aria-label", "Home");
+    homeLink.title = "Home";
+
+    const rawPath = window.location.pathname.toLowerCase();
+    const fileNameWithQuery = rawPath.substring(rawPath.lastIndexOf("/") + 1) || rawPath;
+    const fileName = fileNameWithQuery.split("?")[0].split("#")[0];
+
+    const currentIndex = PROJECT_SEQUENCE.findIndex((project) => project.path.toLowerCase() === fileName);
+    if (currentIndex === -1) {
+        return;
+    }
+
+    const previousProject = PROJECT_SEQUENCE[(currentIndex - 1 + PROJECT_SEQUENCE.length) % PROJECT_SEQUENCE.length];
+    const nextProject = PROJECT_SEQUENCE[(currentIndex + 1) % PROJECT_SEQUENCE.length];
+
+    const buildLink = (project, role) => {
+        const link = document.createElement("a");
+        link.href = project.path;
+        link.dataset.projectNav = role;
+
+        if (role === "previous") {
+            link.rel = "prev";
+        } else if (role === "next") {
+            link.rel = "next";
+        }
+
+        const labelText = role === "previous" ? "PREVIOUS" : "NEXT";
+        const h3 = document.createElement("h3");
+        h3.textContent = labelText;
+
+        const descriptiveLabel = `${labelText.toLowerCase()} project: ${project.label}`;
+        link.setAttribute("aria-label", descriptiveLabel);
+        link.title = descriptiveLabel;
+        link.appendChild(h3);
+
+        return link;
+    };
+
+    const previousLink = buildLink(previousProject, "previous");
+    const nextLink = buildLink(nextProject, "next");
+
+    menu.insertBefore(previousLink, homeLink);
+    homeLink.insertAdjacentElement("afterend", nextLink);
+
+    registerCursorTargets([previousLink, homeLink, nextLink]);
+}
+
+function setupAlonsoNavigation() {
+    const alonsoLogoEl = document.querySelector(".alonso");
+    if (!alonsoLogoEl) {
+        return;
+    }
+
+    const handleClick = (event) => {
+        if (event.defaultPrevented || event.button !== 0) {
+            return;
+        }
+
+        if (event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) {
+            return;
+        }
+
+        if (event.target.closest("nav") || event.target.closest("a, button, [role=\"button\"]")) {
+            return;
+        }
+
+        const rect = alonsoLogoEl.getBoundingClientRect();
+        const withinHorizontal = event.clientX >= rect.left && event.clientX <= rect.right;
+        const withinVertical = event.clientY >= rect.top && event.clientY <= rect.bottom;
+
+        if (!withinHorizontal || !withinVertical) {
+            return;
+        }
+
+        if (window.getSelection && window.getSelection().toString().length) {
+            return;
+        }
+
+        event.preventDefault();
+
+        if (document.body.classList.contains("project-page")) {
+            window.location.href = "index.html";
+        } else {
+            window.scrollTo({
+                top: 0,
+                behavior: "smooth"
+            });
+        }
+    };
+
+    document.addEventListener("click", handleClick);
+}
+
 function setupProjectSlider() {
     if (!document.body.classList.contains("project-page")) {
         return;
@@ -597,53 +761,17 @@ function setupProjectSlider() {
     };
 
     const computeTrackMetrics = () => {
-        const availableWidth = media.clientWidth;
         const clones = getClones();
-        const previousX = gsap.getProperty(track, "x");
-        const safePreviousX = (typeof previousX === "number" && !Number.isNaN(previousX)) ? previousX : 0;
-        const cloneDisplayCache = [];
+        const clonesWidth = clones.reduce((total, clone) => {
+            if (!clone) {
+                return total;
+            }
+            const width = clone.getBoundingClientRect().width || clone.offsetWidth || 0;
+            return total + width;
+        }, 0);
 
-        if (clones.length) {
-            clones.forEach((clone, idx) => {
-                cloneDisplayCache[idx] = clone.style.display;
-                clone.style.display = "none";
-            });
-        }
-
-        gsap.set(track, {
-            x: 0
-        });
-
-        const totalWidth = track.scrollWidth;
-        let desiredOffset = Math.max(0, totalWidth - availableWidth);
-        const lastCard = cards[cards.length - 1];
-
-        if (lastCard) {
-            // Ensure the last real card is nearly out of view.
-            const mediaRect = media.getBoundingClientRect();
-            const lastCardRect = lastCard.getBoundingClientRect();
-            const distanceToLeft = Math.max(0, lastCardRect.left - mediaRect.left);
-            const cardWidth = lastCardRect.width;
-            const almostGoneMargin = Math.max(32, cardWidth * 0.1);
-            const almostGoneOffset = Math.min(
-                totalWidth,
-                distanceToLeft + Math.max(0, cardWidth - almostGoneMargin)
-            );
-
-            desiredOffset = Math.max(desiredOffset, almostGoneOffset);
-        }
-
-        gsap.set(track, {
-            x: safePreviousX
-        });
-
-        if (clones.length) {
-            clones.forEach((clone, idx) => {
-                clone.style.display = cloneDisplayCache[idx];
-            });
-        }
-
-        maxTrackOffset = desiredOffset;
+        const effectiveScrollWidth = Math.max(0, track.scrollWidth - clonesWidth);
+        maxTrackOffset = Math.max(0, effectiveScrollWidth - media.clientWidth);
         return maxTrackOffset;
     };
 
